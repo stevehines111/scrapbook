@@ -98,6 +98,8 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .btn.dark { background: var(--ink); color: #fff; }
 .btn.dark:hover { background: #3A3533; }
 .btn svg.i { width: 16px; height: 16px; }
+.btn.organize { height: 38px; border-radius: 11px; padding: 0 15px 0 12px; }
+.btn.organize:disabled, .btn.organize:disabled:hover { background: var(--fill); color: #C9C3BE; cursor: default; }
 
 /* Main */
 .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 0; }
@@ -277,6 +279,7 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
       <button data-orient="portrait" title="Portrait" aria-label="Portrait"><svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="2"/></svg></button>
       <button data-orient="landscape" title="Landscape" aria-label="Landscape"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="11" rx="2"/></svg></button>
     </div>
+    <button class="btn organize" id="organize-btn"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="10" height="10" rx="1.5"/><rect x="15" y="3" width="6" height="10" rx="1.5"/><rect x="3" y="15" width="18" height="6" rx="1.5"/></svg>Auto organize</button>
   </div>
   <div class="right-controls">
     <div class="group">
@@ -681,6 +684,7 @@ function renderTop(s) {
   $('zoom-pct').textContent = Math.round(ui.ppi / 96 * 100) + '%';
   $('zoom-fit').setAttribute('aria-pressed', ui.zoom === 'fit');
   $('print-btn').disabled = !s.items.length;
+  $('organize-btn').disabled = !s.items.length;
 }
 
 let tabsKey = '';
@@ -779,14 +783,19 @@ function swapOrientation() {
     clampPos(it, W, H);
   });
 }
+// A quarter turn of frame and image together, so the picture and its crop stay the same. dir 1 = clockwise.
+function turnItem(it, dir = 1) {
+  [it.w, it.h] = [it.h, it.w];
+  it.rot = (it.rot + (dir > 0 ? 90 : 270)) % 360;
+  const c = it.crop;
+  it.crop = dir > 0 ? { z: c.z, x: -c.y || 0, y: c.x || 0 } : { z: c.z, x: c.y || 0, y: -c.x || 0 };
+}
 function rotateItem() {
   const it = findItem(ui.sel); if (!it) return;
   change(() => {
     const { W, H } = dims(cur());
     const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
-    [it.w, it.h] = [it.h, it.w];
-    it.rot = (it.rot + 90) % 360;
-    it.crop = { z: it.crop.z, x: -it.crop.y || 0, y: it.crop.x || 0 };
+    turnItem(it, 1);
     fitIn(it, W, H);
     it.x = cx - it.w / 2; it.y = cy - it.h / 2;
     clampPos(it, W, H);
@@ -881,6 +890,172 @@ function setCropZoom(it, z1) {
   const g1 = geo(it, p), k = it.crop.z / z0;
   it.crop.x = g1.mx > 1e-9 ? clamp(g0.ox * k / g1.mx, -1, 1) : 0;
   it.crop.y = g1.my > 1e-9 ? clamp(g0.oy * k / g1.my, -1, 1) : 0;
+}
+
+/* ---------- Auto organize (guillotine packing) ---------- */
+// Packs the current sheet's photos into the safe area from the top-left, edge to edge, keeping every size and crop.
+// Guillotine packing: each free space is only ever split by one straight cut across its whole width or height, so a
+// paper trimmer can separate everything. A photo may turn 90° (frame and image together). Many sort, fit and split
+// rules are tried; the most photos on the sheet wins, then the largest empty rectangle left, then fewer turns.
+// Photos that do not fit go to new sheets right after this one. A photo too big for the safe area either way round
+// (e.g. Full sheet) stays where it is and the rest pack around it.
+const PK_EPS = 1e-7;
+const pkCmp = (a, b) => (Math.abs(a - b) <= PK_EPS ? 0 : b - a);   // descending, sizes within PK_EPS count as equal
+const PK_ORDERS = [
+  (a, b) => pkCmp(a.w * a.h, b.w * b.h),
+  (a, b) => pkCmp(Math.max(a.w, a.h), Math.max(b.w, b.h)) || pkCmp(a.w * a.h, b.w * b.h),
+  (a, b) => pkCmp(Math.min(a.w, a.h), Math.min(b.w, b.h)) || pkCmp(a.w * a.h, b.w * b.h),
+  (a, b) => pkCmp(a.h, b.h) || pkCmp(a.w, b.w),
+  (a, b) => pkCmp(a.w, b.w) || pkCmp(a.h, b.h),
+  (a, b) => pkCmp(a.w + a.h, b.w + b.h) || pkCmp(a.w * a.h, b.w * b.h),
+];
+const PK_FITS = [   // which free space a photo goes in: lowest score wins
+  (f, w, h) => [f.w * f.h - w * h, Math.min(f.w - w, f.h - h)],            // best area
+  (f, w, h) => [Math.min(f.w - w, f.h - h), Math.max(f.w - w, f.h - h)],   // best short side
+  (f, w, h) => [Math.max(f.w - w, f.h - h), Math.min(f.w - w, f.h - h)],   // best long side
+  (f) => [f.y, f.x],                                                        // top-left first
+];
+const PK_SPLITS = [   // true: the first cut runs across the free space's full width, under the photo
+  (f, w, h) => f.w - w <= f.h - h,
+  (f, w, h) => f.w - w > f.h - h,
+  (f, w, h) => w * (f.h - h) > (f.w - w) * h,
+  (f, w, h) => w * (f.h - h) <= (f.w - w) * h,
+  (f) => f.w <= f.h,
+  (f) => f.w > f.h,
+];
+function pkLess(a, b) {
+  for (let i = 0; i < a.length; i++) { if (a[i] < b[i] - PK_EPS) return true; if (a[i] > b[i] + PK_EPS) return false; }
+  return false;
+}
+// One packing pass. list: [{ i, it, w, h, ways: [[turn?] without free turning, [turn?] with] }].
+function pkRun(list, free0, order, fit, split, turn) {
+  const free = free0.map(r => ({ ...r }));
+  const placed = [], left = [];
+  for (const p of [...list].sort((a, b) => order(a, b) || a.i - b.i)) {
+    let best = null;
+    free.forEach((f, fi) => {
+      for (const t of p.ways[turn]) {
+        const w = t ? p.h : p.w, h = t ? p.w : p.h;
+        if (w > f.w + PK_EPS || h > f.h + PK_EPS) continue;
+        const sc = fit(f, w, h);
+        if (!best || pkLess(sc, best.sc)) best = { fi, t, w, h, sc };
+      }
+    });
+    if (!best) { left.push(p); continue; }
+    const f = free[best.fi], { w, h } = best, across = split(f, w, h);
+    placed.push({ p, t: best.t, x: f.x, y: f.y, w, h });
+    const below = { x: f.x, y: f.y + h, w: across ? f.w : w, h: f.h - h };
+    const right = { x: f.x + w, y: f.y, w: f.w - w, h: across ? h : f.h };
+    free.splice(best.fi, 1, ...[below, right].filter(r => r.w > PK_EPS && r.h > PK_EPS));
+  }
+  return { placed, left };
+}
+// Area of the largest empty rectangle inside `area` that no rect covers.
+function pkLargestEmpty(area, rects) {
+  const x0 = area.x, y0 = area.y, x1 = area.x + area.w, y1 = area.y + area.h;
+  const lines = (lo, hi, vals) => {
+    const v = [lo, hi, ...vals.filter(c => c > lo + PK_EPS && c < hi - PK_EPS)].sort((a, b) => a - b);
+    return v.filter((c, i) => i === 0 || c - v[i - 1] > PK_EPS);
+  };
+  const xs = lines(x0, x1, rects.flatMap(r => [r.x, r.x + r.w]));
+  const ys = lines(y0, y1, rects.flatMap(r => [r.y, r.y + r.h]));
+  const C = xs.length - 1, R = ys.length - 1;
+  const occ = [];
+  for (let i = 0; i < R; i++) {
+    const cy = (ys[i] + ys[i + 1]) / 2, row = [];
+    for (let j = 0; j < C; j++) {
+      const cx = (xs[j] + xs[j + 1]) / 2;
+      row.push(rects.some(r => cx > r.x && cx < r.x + r.w && cy > r.y && cy < r.y + r.h));
+    }
+    occ.push(row);
+  }
+  let best = 0;
+  for (let top = 0; top < R; top++) {
+    const open = new Array(C).fill(true);
+    for (let bot = top; bot < R; bot++) {
+      const h = ys[bot + 1] - ys[top];
+      let run = 0;
+      for (let j = 0; j < C; j++) {
+        open[j] = open[j] && !occ[bot][j];
+        run = open[j] ? run + xs[j + 1] - xs[j] : 0;
+        if (run * h > best) best = run * h;
+      }
+    }
+  }
+  return best;
+}
+// The free rectangles of region r around photos that stay put, found with straight cuts only.
+function pkFreeSpace(r, blocks) {
+  blocks = blocks.filter(b => b.x < r.x + r.w - PK_EPS && b.x + b.w > r.x + PK_EPS && b.y < r.y + r.h - PK_EPS && b.y + b.h > r.y + PK_EPS);
+  if (!blocks.length) return [r];
+  const clear = (at, lo, size) => !blocks.some(b => b[lo] < at - PK_EPS && b[lo] + b[size] > at + PK_EPS);
+  for (const b of blocks) {
+    for (const y of [b.y, b.y + b.h]) if (y > r.y + PK_EPS && y < r.y + r.h - PK_EPS && clear(y, 'y', 'h'))
+      return [...pkFreeSpace({ x: r.x, y: r.y, w: r.w, h: y - r.y }, blocks), ...pkFreeSpace({ x: r.x, y, w: r.w, h: r.y + r.h - y }, blocks)];
+    for (const x of [b.x, b.x + b.w]) if (x > r.x + PK_EPS && x < r.x + r.w - PK_EPS && clear(x, 'x', 'w'))
+      return [...pkFreeSpace({ x: r.x, y: r.y, w: x - r.x, h: r.h }, blocks), ...pkFreeSpace({ x, y: r.y, w: r.x + r.w - x, h: r.h }, blocks)];
+  }
+  return [];   // covered, or no straight cut frees any of it
+}
+function pkBest(list, free0, area, fixed) {
+  let best = null;
+  const seen = new Map();
+  for (let turn = 0; turn < 2; turn++) for (const order of PK_ORDERS) for (const fit of PK_FITS) for (const split of PK_SPLITS) {
+    const run = pkRun(list, free0, order, fit, split, turn);
+    const n = run.placed.length;
+    if (best && n < best.n) continue;
+    const key = run.placed.map(q => [q.p.i, q.t ? 1 : 0, q.x.toFixed(6), q.y.toFixed(6)].join(',')).sort().join(';');
+    if (!seen.has(key)) seen.set(key, pkLargestEmpty(area, fixed.concat(run.placed)));
+    const empty = seen.get(key), turns = run.placed.filter(q => q.t).length;
+    if (!best || n > best.n || empty > best.empty + PK_EPS || (empty >= best.empty - PK_EPS && turns < best.turns)) {
+      best = { ...run, n, empty, turns };
+    }
+  }
+  return best;
+}
+function autoOrganize() {
+  const s = cur();
+  if (!s.items.length || ui.gesture) return;
+  if (ui.crop) endCrop();
+  const { W, H } = dims(s);
+  const area = { x: SAFE, y: SAFE, w: W - 2 * SAFE, h: H - 2 * SAFE };
+  const fixed = [], list = [];
+  s.items.forEach((it, i) => {
+    const as = it.w <= area.w + PK_EPS && it.h <= area.h + PK_EPS;
+    const turned = !near(it.w, it.h) && it.h <= area.w + PK_EPS && it.w <= area.h + PK_EPS;
+    if (!as && !turned) { fixed.push(it); return; }
+    list.push({ i, it, w: it.w, h: it.h, ways: [[!as], [...(as ? [false] : []), ...(turned ? [true] : [])]] });
+  });
+  if (!list.length) { render(); return; }
+  const added = [];
+  let moved = 0;
+  change(() => {
+    // Turning back toward upright keeps a photo turned by an earlier organize from ending up upside down.
+    const place = run => run.placed.map(q => {
+      if (q.t) turnItem(q.p.it, q.p.it.rot === 90 ? -1 : 1);
+      q.p.it.x = q.x; q.p.it.y = q.y;
+      return q.p.it;
+    });
+    let run = pkBest(list, pkFreeSpace(area, fixed), area, fixed);
+    const keep = new Set(place(run));
+    s.items = s.items.filter(it => keep.has(it) || fixed.includes(it));
+    let rest = run.left, at = doc.current;
+    while (rest.length) {
+      run = pkBest(rest, [area], area, []);
+      if (!run.placed.length) { s.items.push(...rest.map(p => p.it)); break; }   // never lose a photo
+      const ns = makeSheet(s.size, s.orient);
+      ns.items = place(run);
+      doc.sheets.splice(++at, 0, ns);
+      added.push(at + 1);
+      moved += ns.items.length;
+      rest = run.left;
+    }
+    ui.sel = null;
+  });
+  if (moved) {
+    const where = added.length === 1 ? `Sheet ${added[0]}` : `Sheets ${added[0]}–${added[added.length - 1]}`;
+    toast(`${moved} photo${moved === 1 ? '' : 's'} moved to ${where}`);
+  }
 }
 
 /* ---------- Zoom ---------- */
@@ -1310,6 +1485,7 @@ window.addEventListener('drop', e => {
 /* ---------- Top bar, tabs ---------- */
 $('size-seg').addEventListener('click', e => { const b = e.target.closest('[data-size]'); if (b) setSheetSize(b.dataset.size); });
 $('orient-seg').addEventListener('click', e => { const b = e.target.closest('[data-orient]'); if (b) setOrient(b.dataset.orient); });
+$('organize-btn').addEventListener('click', autoOrganize);
 $('undo').addEventListener('click', undo);
 $('redo').addEventListener('click', redo);
 $('zoom-in').addEventListener('click', () => zoomStep(1));
