@@ -37,17 +37,18 @@ nothing to install. Hosted on GitHub Pages: https://stevehines111.github.io/scra
   while the tab is hidden, until photos are picked or Google's timeout.
 - Bringing them in: photos only (videos skipped), each downloaded at its own width and height (`=w{w}-h{h}`, a JPEG even
   for HEIC originals) with the bearer token, 4 at a time, into the normal import. The session is deleted after.
-- Direct download from `lh3.googleusercontent.com` with the Authorization header is not yet proven in a real browser
-  (a Chrome probe on a made-up lh3 path, 2026-09-29, was refused at the CORS preflight). If it fails as a network/CORS error: with `RELAY_URL` set, downloads go through the relay; with it empty (the default),
-  a `Google Photos download blocked` toast and the exact error in the console.
+- Direct download from `lh3.googleusercontent.com` with the Authorization header works in Chrome: real sign-in test
+  2026-09-29, Steve's account, 7 photos, zero relay calls (a probe on a made-up lh3 path had been refused, which was
+  misleading). The relay stays as a fallback: if a direct download fails as a network/CORS error, downloads go through
+  the relay; with `RELAY_URL` empty, a `Google Photos download blocked` toast and the exact error in the console.
 - Relay (`relay/Code.gs`): a text/plain POST `{ url, token }` (no CORS preflight); refuses any host but
   `lh3.googleusercontent.com`; fetches with the caller's own token; returns `{ ok, mimeType, data }` (base64). Stores
   nothing, no secrets. Runs on the deploying account's Apps Script quota. To turn it on:
   1. script.google.com → New project → paste `relay/Code.gs` over `Code.gs` → Save.
   2. Deploy → New deployment → type Web app. Execute as: Me. Who has access: Anyone. Deploy, authorize when asked.
   3. Copy the web app URL (ends in `/exec`) → set `RELAY_URL` in `index.html` → commit.
-- Checked with Google mocked (Playwright routes on port 8101). Not established until a real sign-in: the direct download,
-  and Family Link on a supervised teen account.
+- Checked with Google mocked (Playwright routes on port 8101) and with a real sign-in on localhost:8000. Not yet
+  established: Family Link on a supervised teen account, Safari on the MacBook.
 
 ## Auto organize
 Top-bar button that packs the current sheet's photos into the safe area (the 0.25 in inset). It guarantees:
