@@ -1,0 +1,1451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrapbook</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='6' width='19' height='22' rx='3' transform='rotate(-10 12 17)' fill='%23F2545B'/%3E%3Crect x='11' y='4' width='18' height='21' rx='3' transform='rotate(7 20 14)' fill='%23fff' stroke='%231E1B1A' stroke-width='2.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style id="page-size">@page { size: 13in 19in; margin: 0; }</style>
+<style>
+:root {
+  --accent: #F2545B;
+  --accent-hover: #E3434A;
+  --accent-ink: #C8313A;
+  --accent-soft: rgba(242, 84, 91, .12);
+  --ink: #1E1B1A;
+  --ink-2: #5F5955;
+  --ink-3: #9A938E;
+  --desk: #ECE8E3;
+  --panel: #FFFFFF;
+  --line: #E9E4DF;
+  --fill: #F4F1EE;
+  --fill-2: #EAE6E1;
+  --shadow-pop: 0 12px 32px rgba(40, 28, 20, .16), 0 2px 6px rgba(40, 28, 20, .08);
+  --font: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--desk);
+  display: grid;
+  grid-template-rows: 58px minmax(0, 1fr);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+[hidden] { display: none !important; }
+
+/* Top bar */
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px 0 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 30;
+}
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 19px; letter-spacing: -0.02em; white-space: nowrap; }
+.brand svg { width: 26px; height: 26px; }
+.center-controls { display: flex; align-items: center; gap: 10px; }
+.right-controls { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.seg { display: inline-flex; background: var(--fill); border-radius: 11px; padding: 3px; gap: 2px; }
+.seg button {
+  border: 0; background: transparent; color: var(--ink-2); font-weight: 500;
+  height: 32px; padding: 0 14px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 1px 1px rgba(0,0,0,.04); }
+.seg.icons button { width: 36px; padding: 0; }
+.icon-btn {
+  width: 36px; height: 36px; border: 0; border-radius: 10px; background: transparent; cursor: pointer;
+  display: inline-grid; place-items: center; color: var(--ink);
+}
+.icon-btn:hover:not(:disabled) { background: var(--fill); }
+.icon-btn:disabled { color: #C9C3BE; cursor: default; }
+.group { display: flex; align-items: center; gap: 2px; }
+.zoom { display: flex; align-items: center; background: var(--fill); border-radius: 11px; padding: 3px; }
+.zoom .icon-btn { width: 32px; height: 32px; border-radius: 8px; }
+.zoom .icon-btn:hover:not(:disabled) { background: #fff; }
+.zoom-pct { min-width: 48px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; font-size: 13px; }
+.zoom .fit { border: 0; background: transparent; height: 32px; padding: 0 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.zoom .fit:hover, .zoom .fit[aria-pressed="true"] { background: #fff; }
+.primary {
+  border: 0; background: var(--accent); color: #fff; font-weight: 600; height: 38px; padding: 0 18px 0 14px;
+  border-radius: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: 0 1px 2px rgba(200, 40, 50, .25), 0 4px 12px -2px rgba(242, 84, 91, .45);
+}
+.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.primary:disabled { background: #F4B3B6; box-shadow: none; cursor: default; }
+.btn {
+  border: 0; background: var(--fill); color: var(--ink); font-weight: 600; height: 34px; padding: 0 14px;
+  border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn:hover { background: var(--fill-2); }
+.btn.dark { background: var(--ink); color: #fff; }
+.btn.dark:hover { background: #3A3533; }
+.btn svg.i { width: 16px; height: 16px; }
+
+/* Main */
+.app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 0; }
+.tray { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.tray-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 12px; gap: 8px; }
+.tray-head h2 { margin: 0; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.count { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--fill); border-radius: 999px; padding: 2px 8px; font-variant-numeric: tabular-nums; }
+.tray-body { flex: 1; overflow-y: auto; padding: 2px 16px 16px; }
+.progress { margin: 0 16px 12px; padding: 10px 12px; background: var(--fill); border-radius: 10px; font-size: 13px; font-weight: 500; }
+.progress .bar { height: 4px; background: #fff; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+.progress .bar i { display: block; height: 100%; width: 0; background: var(--ink); border-radius: 4px; transition: width .2s; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.thumb {
+  position: relative; aspect-ratio: 1 / 1; border: 0; padding: 0; border-radius: 10px; overflow: hidden;
+  background: var(--fill); cursor: grab; touch-action: pan-y; display: block; width: 100%;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; transition: transform .2s ease; }
+.thumb:hover img { transform: scale(1.04); }
+.badge {
+  position: absolute; top: 6px; right: 6px; background: rgba(30, 27, 26, .86); color: #fff; font-size: 11px; font-weight: 700;
+  border-radius: 999px; padding: 2px 7px; font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.empty {
+  border: 1.5px dashed #D8D0C9; border-radius: 16px; padding: 30px 16px 22px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px; background: #FBFAF8;
+}
+.empty .ring { width: 52px; height: 52px; border-radius: 50%; background: var(--fill); display: grid; place-items: center; color: var(--ink-2); }
+.empty .ring svg.i { width: 24px; height: 24px; }
+.empty p { margin: 0; font-weight: 600; font-size: 14px; line-height: 1.35; max-width: 190px; text-wrap: balance; }
+.link { border: 0; background: none; padding: 2px; color: var(--ink-2); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.link:hover { color: var(--ink); }
+
+.center { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.desk { flex: 1; overflow: auto; position: relative; background: var(--desk); }
+.stage { position: relative; }
+.sheet-wrap { position: absolute; }
+.sheet {
+  position: absolute; inset: 0; z-index: 0; background: #fff; border-radius: 2px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(40, 30, 20, .10), 0 12px 32px -8px rgba(40, 30, 20, .22);
+}
+.safe { position: absolute; border: 1px dashed rgba(30, 27, 26, .22); pointer-events: none; }
+.items { position: absolute; inset: 0; }
+.item { position: absolute; overflow: hidden; cursor: move; touch-action: none; background: #EFEBE7; }
+.item img { position: absolute; max-width: none; pointer-events: none; -webkit-user-drag: none; }
+.lowres {
+  position: absolute; top: 6px; left: 6px; display: none; background: #FFD84D; color: #3A2E00; font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px; box-shadow: 0 1px 3px rgba(0,0,0,.25); white-space: nowrap; pointer-events: none;
+}
+.item.is-low .lowres { display: block; }
+.overlay { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.guide { position: absolute; background: var(--accent); pointer-events: none; }
+.crop-ghost { position: absolute; max-width: none; opacity: .38; pointer-events: auto; cursor: grab; touch-action: none; -webkit-user-drag: none; }
+.crop-ghost:active { cursor: grabbing; }
+.selbox { position: absolute; outline: 2px solid var(--accent); pointer-events: none; }
+.selbox.cropping .h { display: none; }
+.selbox.small .h.s { display: none; }
+.h { position: absolute; pointer-events: auto; background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.25); touch-action: none; }
+.h::after { content: ""; position: absolute; inset: -9px; }
+.h.c { width: 14px; height: 14px; border-radius: 50%; margin: -7px 0 0 -7px; }
+.h.nw { left: 0; top: 0; cursor: nwse-resize; }
+.h.ne { left: 100%; top: 0; cursor: nesw-resize; }
+.h.sw { left: 0; top: 100%; cursor: nesw-resize; }
+.h.se { left: 100%; top: 100%; cursor: nwse-resize; }
+.h.s-n, .h.s-s { width: 24px; height: 8px; border-radius: 4px; left: 50%; margin: -4px 0 0 -12px; cursor: ns-resize; }
+.h.s-n { top: 0; } .h.s-s { top: 100%; }
+.h.s-e, .h.s-w { width: 8px; height: 24px; border-radius: 4px; top: 50%; margin: -12px 0 0 -4px; cursor: ew-resize; }
+.h.s-w { left: 0; } .h.s-e { left: 100%; }
+.live {
+  position: absolute; left: 50%; top: 100%; transform: translate(-50%, 12px); background: var(--ink); color: #fff;
+  font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+
+.toolbar {
+  position: absolute; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+  background: #fff; border-radius: 14px; padding: 6px; box-shadow: var(--shadow-pop); border: 1px solid rgba(0,0,0,.04);
+  max-width: calc(100% - 16px);
+}
+.tb-readout { font-weight: 700; font-size: 13px; padding: 0 8px 0 8px; white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 78px; text-align: center; }
+.tb-sep { width: 1px; height: 22px; background: var(--line); margin: 0 3px; }
+.chip {
+  height: 30px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--fill); font-size: 13px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+}
+.chip:hover { background: var(--fill-2); }
+.chip.on { background: var(--accent-soft); color: var(--accent-ink); box-shadow: inset 0 0 0 1.5px var(--accent); font-weight: 600; }
+.tb-btn { width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; display: inline-grid; place-items: center; }
+.tb-btn:hover { background: var(--fill); }
+.tb-btn.danger:hover { color: #D2333B; background: #FDECEC; }
+.tb-label { font-weight: 700; font-size: 13px; padding: 0 6px 0 8px; }
+.tb-zoom { display: flex; align-items: center; gap: 8px; padding: 0 6px; color: var(--ink-2); }
+.tb-zoom svg.i { width: 16px; height: 16px; }
+.tb-zoom input { width: 150px; accent-color: var(--accent); cursor: pointer; }
+.tb-zoom input:focus-visible { outline: none; }
+.tb-done { height: 32px; padding: 0 14px; border: 0; border-radius: 9px; background: var(--ink); color: #fff; font-weight: 600; cursor: pointer; }
+.tb-done:hover { background: #3A3533; }
+
+.tabs {
+  height: 50px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 14px; background: var(--desk);
+  border-top: 1px solid rgba(40, 30, 20, .07); overflow-x: auto;
+}
+.tab { display: flex; align-items: center; height: 34px; border-radius: 10px; flex: none; }
+.tab:hover { background: rgba(255,255,255,.5); }
+.tab.on { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.tab-main { border: 0; background: transparent; height: 100%; padding: 0 12px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.tab.on .tab-main { color: var(--ink); }
+.tab.closable .tab-main { padding-right: 4px; }
+.tab-size { font-weight: 500; font-size: 12px; color: var(--ink-3); margin-left: 6px; }
+.tab-x { width: 24px; height: 24px; margin-right: 5px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-3); display: grid; place-items: center; cursor: pointer; }
+.tab-x svg.i { width: 14px; height: 14px; }
+.tab-x:hover { background: var(--fill); color: var(--ink); }
+.tab-add { border: 0; background: transparent; height: 34px; padding: 0 12px 0 9px; border-radius: 10px; font-weight: 600; color: var(--ink-2); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; flex: none; }
+.tab-add svg.i { width: 16px; height: 16px; }
+.tab-add:hover { background: rgba(255,255,255,.6); color: var(--ink); }
+
+.drag-ghost { position: fixed; z-index: 100; pointer-events: none; border-radius: 6px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.25); opacity: .92; transform: translate(-50%, -50%); }
+.drag-ghost img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.drag-ghost.on-sheet { border-radius: 0; outline: 2px solid var(--accent); }
+
+.popover {
+  position: fixed; top: 66px; right: 14px; width: 330px; z-index: 50; background: #fff; border-radius: 16px;
+  box-shadow: var(--shadow-pop); border: 1px solid rgba(0,0,0,.05); padding: 18px 18px 16px;
+}
+.popover h3 { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
+.facts { margin: 0; display: grid; gap: 2px; }
+.facts > div { display: grid; grid-template-columns: 104px 1fr; gap: 10px; padding: 8px 10px; border-radius: 9px; align-items: baseline; }
+.facts > div:nth-child(odd) { background: #FAF8F6; }
+.facts dt { color: var(--ink-2); font-weight: 500; }
+.facts dd { margin: 0; font-weight: 700; }
+.facts dd small { display: block; font-weight: 500; color: var(--ink-2); font-size: 12px; margin-top: 2px; }
+.facts > div.hl { background: #FFF6D6; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 10px 4px; font-weight: 600; cursor: pointer; }
+.switch { position: relative; width: 40px; height: 24px; }
+.switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.switch i { position: absolute; inset: 0; border-radius: 999px; background: #D6D0CA; transition: background .15s; pointer-events: none; }
+.switch i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+.switch input:checked + i { background: var(--ink); }
+.switch input:checked + i::after { transform: translateX(16px); }
+.switch input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pp-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.pp-actions .primary { height: 36px; padding: 0 20px; }
+
+.toast {
+  position: fixed; left: calc(50% + 130px); bottom: 64px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: #fff;
+  border-radius: 12px; padding: 10px 12px 10px 16px; display: flex; align-items: center; gap: 14px; font-weight: 500;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25); white-space: nowrap;
+}
+.toast button { border: 0; background: rgba(255,255,255,.14); color: #fff; font-weight: 700; height: 28px; padding: 0 12px; border-radius: 8px; cursor: pointer; }
+.toast button:hover { background: rgba(255,255,255,.24); }
+.drop-overlay { position: fixed; inset: 0; z-index: 90; background: rgba(30, 27, 26, .35); display: grid; place-items: center; pointer-events: none; }
+.drop-overlay div { background: #fff; border-radius: 18px; padding: 26px 34px; font-weight: 700; font-size: 17px; box-shadow: var(--shadow-pop); border: 2px dashed #CFC6BE; }
+
+#print-root { display: none; }
+@media print {
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; height: auto !important; overflow: visible !important; }
+  body { display: block !important; }
+  body > *:not(#print-root) { display: none !important; }
+  #print-root { display: block !important; position: relative; overflow: hidden; background: #fff; page-break-after: avoid; break-after: avoid; }
+  .p-marks { position: absolute; left: 0; top: 0; }
+  .p-item { position: absolute; overflow: hidden; }
+  .p-item img { position: absolute; max-width: none; display: block; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="6" width="19" height="22" rx="3" transform="rotate(-10 12 17)" fill="#F2545B"/><rect x="11" y="4" width="18" height="21" rx="3" transform="rotate(7 20 14)" fill="#fff" stroke="#1E1B1A" stroke-width="2.4"/></svg>
+    Scrapbook
+  </div>
+  <div class="center-controls">
+    <div class="seg" id="size-seg" role="group" aria-label="Sheet size">
+      <button data-size="13x19">13 × 19</button>
+      <button data-size="8.5x11">8.5 × 11</button>
+      <button data-size="4x6">4 × 6</button>
+    </div>
+    <div class="seg icons" id="orient-seg" role="group" aria-label="Orientation">
+      <button data-orient="portrait" title="Portrait" aria-label="Portrait"><svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="2"/></svg></button>
+      <button data-orient="landscape" title="Landscape" aria-label="Landscape"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="11" rx="2"/></svg></button>
+    </div>
+  </div>
+  <div class="right-controls">
+    <div class="group">
+      <button class="icon-btn" id="undo" title="Undo" aria-label="Undo"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+      <button class="icon-btn" id="redo" title="Redo" aria-label="Redo"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
+    </div>
+    <div class="zoom">
+      <button class="icon-btn" id="zoom-out" title="Zoom out" aria-label="Zoom out"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <span class="zoom-pct" id="zoom-pct">100%</span>
+      <button class="icon-btn" id="zoom-in" title="Zoom in" aria-label="Zoom in"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+      <button class="fit" id="zoom-fit">Fit</button>
+    </div>
+    <button class="primary" id="print-btn"><svg class="i" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>Print</button>
+  </div>
+</header>
+
+<main class="app">
+  <aside class="tray">
+    <div class="tray-head">
+      <h2>Photos <span class="count" id="photo-count">0</span></h2>
+      <button class="btn" id="add-btn" hidden><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add photos</button>
+    </div>
+    <div class="progress" id="progress" hidden><span id="progress-text"></span><div class="bar"><i id="progress-bar"></i></div></div>
+    <div class="tray-body">
+      <div class="empty" id="tray-empty">
+        <div class="ring"><svg class="i" viewBox="0 0 24 24"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg></div>
+        <p>Drop photos or a Google Photos zip</p>
+        <button class="btn dark" id="choose-btn">Choose photos</button>
+        <button class="link" id="sample-btn">Try sample photos</button>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </aside>
+
+  <section class="center" id="center">
+    <div class="desk" id="desk">
+      <div class="stage" id="stage">
+        <div class="sheet-wrap" id="sheet-wrap">
+          <div class="sheet" id="sheet"><div class="safe" id="safe"></div><div class="items" id="items"></div></div>
+          <div class="overlay" id="overlay">
+            <div id="guides"></div>
+            <img class="crop-ghost" id="crop-ghost" alt="" draggable="false" hidden>
+            <div class="selbox" id="selbox" hidden>
+              <span class="h c nw" data-h="nw"></span><span class="h c ne" data-h="ne"></span>
+              <span class="h c sw" data-h="sw"></span><span class="h c se" data-h="se"></span>
+              <span class="h s s-n" data-h="n"></span><span class="h s s-s" data-h="s"></span>
+              <span class="h s s-e" data-h="e"></span><span class="h s s-w" data-h="w"></span>
+              <span class="live" id="live" hidden></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar" id="toolbar" hidden></div>
+    <nav class="tabs" id="tabs" aria-label="Sheets"></nav>
+  </section>
+</main>
+
+<div class="popover" id="print-panel" role="dialog" aria-label="Print" hidden>
+  <h3 id="pp-title">Print</h3>
+  <dl class="facts" id="pp-facts"></dl>
+  <label class="switch-row">Cut marks <span class="switch"><input type="checkbox" id="cut-toggle" checked><i></i></span></label>
+  <div class="pp-actions">
+    <button class="btn" id="pp-cancel">Cancel</button>
+    <button class="primary" id="pp-print">Print</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="drop-overlay" id="drop-overlay" hidden><div>Drop photos or a Google Photos zip</div></div>
+<input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif,.zip,application/zip" hidden>
+<div id="print-root"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Constants ---------- */
+const SIZES = {
+  '13x19': { a: 13, b: 19, label: '13 × 19', short: '13×19', paper: 'A3+ (13 × 19)' },
+  '8.5x11': { a: 8.5, b: 11, label: '8.5 × 11', short: '8.5×11', paper: 'Letter (8.5 × 11)' },
+  '4x6': { a: 4, b: 6, label: '4 × 6', short: '4×6', paper: '4 × 6' },
+};
+const SAFE = 0.25;          // printable-area inset, inches
+const MIN = 0.5;            // smallest frame side, inches
+const SNAP_PX = 8;          // move-snap threshold, screen px
+const STD_TOL = 0.12;       // snap to a standard print size within this, inches
+const LOW_PPI = 150;
+const STD = [[2,3],[2.5,3.5],[3,3],[3,4],[3.5,5],[4,4],[4,5],[4,6],[5,5],[5,7],[6,6],[6,8],[8,8],[8,10],[8,12],[8.5,11],[11,14],[12,12],[12,18],[13,19]];
+const CHIPS = [['4×6',4,6],['5×7',5,7],['3×4',3,4],['3×3',3,3],['2×3',2,3],['Wallet',2.5,3.5],['8×10',8,10]];
+const ZOOMS = [0.1,0.125,0.15,0.2,0.25,0.33,0.5,0.67,0.75,1,1.25,1.5,2,3,4];
+const IMG_EXT = /\.(jpe?g|png|webp|heic|heif)$/i;
+const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif' };
+const LIBS = {
+  jszip: { src: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', integrity: 'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG' },
+  heic2any: { src: 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js', integrity: 'sha384-OTofQ0MEeiSgh62havBcemCIK0gqj809wX6UA0uPISNMRnR6NZyCdGzX3SbLrgwL' },
+};
+const ICON = {
+  swap: '<svg class="i" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="1.5"/><rect x="3" y="7" width="18" height="10" rx="1.5" stroke-dasharray="2.2 2.4"/></svg>',
+  crop: '<svg class="i" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>',
+  rotate: '<svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>',
+  dup: '<svg class="i" viewBox="0 0 24 24"><rect width="13" height="13" x="9" y="9" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  trash: '<svg class="i" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  x: '<svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+  imgSmall: '<svg class="i" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>',
+  imgLarge: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>',
+};
+
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const r8 = v => Math.round(v * 8) / 8;
+const f8 = v => Math.floor(v * 8 + 1e-9) / 8;
+const near = (a, b, t = 1e-6) => Math.abs(a - b) <= t;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let idSeq = 0;
+const uid = p => p + (++idSeq).toString(36) + Math.random().toString(36).slice(2, 6);
+function fmt(v) {
+  if (near(v * 8, Math.round(v * 8), 1e-6)) return String(Math.round(v * 8) / 8);
+  return String(Math.round(v * 100) / 100);
+}
+const fmtSize = (w, h) => `${fmt(w)} × ${fmt(h)} in`;
+
+/* ---------- State ---------- */
+const photos = new Map();   // id -> { id, name, w, h, thumb, preview, full }
+const makeSheet = (size, orient) => ({ id: uid('s'), size, orient, items: [] });
+let doc = { sheets: [makeSheet('13x19', 'portrait')], current: 0 };
+const ui = { sel: null, crop: null, cropStart: null, zoom: 'fit', ppi: 30, cutMarks: true, guides: [], gesture: null };
+let past = [], future = [];
+
+const cur = () => doc.sheets[doc.current];
+function dims(s) { const S = SIZES[s.size]; return s.orient === 'portrait' ? { W: S.a, H: S.b } : { W: S.b, H: S.a }; }
+const findItem = id => (id ? cur().items.find(i => i.id === id) : null);
+
+/* ---------- History ---------- */
+const snap = () => JSON.stringify(doc);
+function commit(prev) {
+  if (prev == null || prev === snap()) return false;
+  past.push(prev);
+  if (past.length > 300) past.shift();
+  future = [];
+  return true;
+}
+function change(fn) { const prev = snap(); fn(); commit(prev); render(); }
+function undo() {
+  if (ui.gesture) return;
+  if (ui.crop) endCrop();
+  if (!past.length) { render(); return; }
+  future.push(snap());
+  doc = JSON.parse(past.pop());
+  afterHistory();
+}
+function redo() {
+  if (ui.gesture) return;
+  if (ui.crop) endCrop();
+  if (!future.length) { render(); return; }
+  past.push(snap());
+  doc = JSON.parse(future.pop());
+  afterHistory();
+}
+function afterHistory() { if (!findItem(ui.sel)) ui.sel = null; render(); }
+
+/* ---------- Geometry (inches) ---------- */
+// The image always covers its frame. crop.z >= 1 zooms past cover; crop.x/y in [-1, 1] pan across the overflow.
+function geo(it, p) {
+  const turned = it.rot % 180 !== 0;
+  const rw = turned ? p.h : p.w, rh = turned ? p.w : p.h;
+  const cover = Math.max(it.w / rw, it.h / rh);
+  const s = cover * it.crop.z;                    // inches per image pixel
+  const IW = rw * s, IH = rh * s;
+  const mx = (IW - it.w) / 2, my = (IH - it.h) / 2;
+  const ox = it.crop.x * mx, oy = it.crop.y * my;
+  return { s, cover, rw, rh, IW, IH, mx, my, ox, oy, cx: it.w / 2 + ox, cy: it.h / 2 + oy, dw: p.w * s, dh: p.h * s, ppi: 1 / s };
+}
+function imgStyle(img, it, p, u, unit) {
+  const g = geo(it, p);
+  img.style.left = g.cx * u + unit;
+  img.style.top = g.cy * u + unit;
+  img.style.width = g.dw * u + unit;
+  img.style.height = g.dh * u + unit;
+  img.style.transform = `translate(-50%, -50%) rotate(${it.rot}deg)`;
+}
+function clampPos(it, W, H) {
+  it.x = clamp(it.x, 0, Math.max(0, W - it.w));
+  it.y = clamp(it.y, 0, Math.max(0, H - it.h));
+}
+function fitIn(it, W, H) {
+  const k = Math.min(1, W / it.w, H / it.h);
+  if (k < 1) { it.w = Math.min(W, it.w * k); it.h = Math.min(H, it.h * k); }
+}
+function defaultSize(p, W, H, long = 6) {
+  const ar = p.w / p.h;
+  let w = ar >= 1 ? long : long * ar, h = ar >= 1 ? long / ar : long;
+  const k = Math.min(1, (W - 2 * SAFE) / w, (H - 2 * SAFE) / h);
+  return { w: w * k, h: h * k };
+}
+const overlaps = (a, b) => a.x < b.x + b.w - 1e-6 && a.x + a.w > b.x + 1e-6 && a.y < b.y + b.h - 1e-6 && a.y + a.h > b.y + 1e-6;
+function findSpot(s, w, h) {
+  const { W, H } = dims(s);
+  const xs = [SAFE, ...s.items.map(i => i.x + i.w)];
+  const ys = [SAFE, ...s.items.map(i => i.y + i.h)];
+  const cands = [];
+  for (const y of ys) for (const x of xs) cands.push([x, y]);
+  cands.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+  for (const [x, y] of cands) {
+    const r = { x, y, w, h };
+    if (x + w > W - SAFE + 1e-6 || y + h > H - SAFE + 1e-6) continue;
+    if (s.items.some(i => overlaps(r, i))) continue;
+    return { x, y };
+  }
+  return null;
+}
+function snapPair(w, h, W, H) {
+  let best = null;
+  const pairs = STD.concat([[W, H]]);
+  for (const [a, b] of pairs) for (const [sw, sh] of [[a, b], [b, a]]) {
+    if (Math.abs(w - sw) <= STD_TOL && Math.abs(h - sh) <= STD_TOL) {
+      const d = Math.abs(w - sw) + Math.abs(h - sh);
+      if (!best || d < best.d) best = { w: sw, h: sh, d };
+    }
+  }
+  return best;
+}
+function snapSide(v, other, avail, W, H) {
+  v = clamp(v, MIN, avail);
+  const pairs = STD.concat([[W, H]]);
+  let best = null;
+  for (const [a, b] of pairs) for (const [t, o] of [[a, b], [b, a]]) {
+    if (near(o, other, 0.01) && Math.abs(v - t) <= STD_TOL && t <= avail + 1e-9) {
+      if (best === null || Math.abs(v - t) < Math.abs(v - best)) best = t;
+    }
+  }
+  if (best !== null) return best;
+  return clamp(r8(v), MIN, avail);
+}
+
+/* ---------- DOM refs ---------- */
+const desk = $('desk'), stage = $('stage'), wrap = $('sheet-wrap'), sheetEl = $('sheet'), safeEl = $('safe'), itemsEl = $('items');
+const guidesEl = $('guides'), ghostEl = $('crop-ghost'), selbox = $('selbox'), liveEl = $('live'), toolbar = $('toolbar');
+const tabsEl = $('tabs'), grid = $('grid'), fileInput = $('file-input'), printRoot = $('print-root'), pageStyle = $('page-size');
+const panel = $('print-panel'), toastEl = $('toast'), center = $('center');
+const itemEls = new Map();
+
+/* ---------- Render ---------- */
+let rafId = 0;
+function requestRender() { if (!rafId) rafId = requestAnimationFrame(() => { rafId = 0; render(); }); }
+
+const DESK_PAD = 24;
+function fitPPI(W, H) {
+  const pad = DESK_PAD;
+  return Math.max(3, Math.min((desk.clientWidth - 2 * pad) / W, (desk.clientHeight - 2 * pad) / H));
+}
+function render() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+  const s = cur();
+  const { W, H } = dims(s);
+  ui.ppi = ui.zoom === 'fit' ? fitPPI(W, H) : ui.zoom;
+  const u = ui.ppi;
+  const sw = W * u, sh = H * u, pad = DESK_PAD;
+  const stW = Math.max(desk.clientWidth, Math.ceil(sw + 2 * pad));
+  const stH = Math.max(desk.clientHeight, Math.ceil(sh + 2 * pad));
+  stage.style.width = stW + 'px';
+  stage.style.height = stH + 'px';
+  wrap.style.left = Math.round((stW - sw) / 2) + 'px';
+  wrap.style.top = Math.round((stH - sh) / 2) + 'px';
+  wrap.style.width = sw + 'px';
+  wrap.style.height = sh + 'px';
+  const si = SAFE * u;
+  Object.assign(safeEl.style, { left: si + 'px', top: si + 'px', width: (sw - 2 * si) + 'px', height: (sh - 2 * si) + 'px' });
+  renderItems(s, u);
+  renderOverlay(s, u, W, H);
+  renderToolbar(s, W, H);
+  renderTop(s);
+  renderTabs();
+  renderTray();
+}
+
+function renderItems(s, u) {
+  const seen = new Set();
+  s.items.forEach((it, i) => {
+    let el = itemEls.get(it.id);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'item';
+      el.dataset.id = it.id;
+      const img = document.createElement('img');
+      img.alt = ''; img.draggable = false; img.decoding = 'async';
+      const pill = document.createElement('span');
+      pill.className = 'lowres'; pill.textContent = 'Low res';
+      el.append(img, pill);
+      itemsEl.appendChild(el);
+      itemEls.set(it.id, el);
+    }
+    seen.add(it.id);
+    el.style.left = it.x * u + 'px';
+    el.style.top = it.y * u + 'px';
+    el.style.width = it.w * u + 'px';
+    el.style.height = it.h * u + 'px';
+    el.style.zIndex = i + 1;
+    const p = photos.get(it.src);
+    if (p) {
+      const img = el.firstChild;
+      if (img.getAttribute('src') !== p.preview) img.src = p.preview;
+      imgStyle(img, it, p, u, 'px');
+      el.classList.toggle('is-low', geo(it, p).ppi < LOW_PPI);
+    }
+  });
+  for (const [id, el] of itemEls) if (!seen.has(id)) { el.remove(); itemEls.delete(id); }
+}
+
+function renderOverlay(s, u, W, H) {
+  guidesEl.innerHTML = ui.guides.map(g => g.v
+    ? `<div class="guide" style="left:${g.at * u - 0.5}px;top:0;width:1px;height:${H * u}px"></div>`
+    : `<div class="guide" style="top:${g.at * u - 0.5}px;left:0;height:1px;width:${W * u}px"></div>`).join('');
+  const it = findItem(ui.sel);
+  if (!it) { selbox.hidden = true; ghostEl.hidden = true; return; }
+  selbox.hidden = false;
+  Object.assign(selbox.style, { left: it.x * u + 'px', top: it.y * u + 'px', width: it.w * u + 'px', height: it.h * u + 'px' });
+  selbox.classList.toggle('cropping', ui.crop === it.id);
+  selbox.classList.toggle('small', it.w * u < 56 || it.h * u < 56);
+  const g = ui.gesture;
+  liveEl.hidden = !(g && g.type === 'resize' && g.id === it.id);
+  if (!liveEl.hidden) liveEl.textContent = fmtSize(it.w, it.h);
+  const p = photos.get(it.src);
+  if (ui.crop === it.id && p) {
+    ghostEl.hidden = false;
+    if (ghostEl.getAttribute('src') !== p.preview) ghostEl.src = p.preview;
+    const gg = geo(it, p);
+    Object.assign(ghostEl.style, {
+      left: (it.x + gg.cx) * u + 'px', top: (it.y + gg.cy) * u + 'px',
+      width: gg.dw * u + 'px', height: gg.dh * u + 'px',
+      transform: `translate(-50%, -50%) rotate(${it.rot}deg)`,
+    });
+  } else ghostEl.hidden = true;
+}
+
+let tbKey = '';
+function chipFits(cw, ch, W, H) { return (cw <= W + 1e-9 && ch <= H + 1e-9) || (ch <= W + 1e-9 && cw <= H + 1e-9); }
+function renderToolbar(s, W, H) {
+  const it = findItem(ui.sel);
+  const busy = ui.gesture && ui.gesture.type !== 'pan' && ui.gesture.moved;
+  if (!it || busy) { toolbar.hidden = true; tbKey = ''; return; }
+  const cropping = ui.crop === it.id;
+  const readout = fmtSize(it.w, it.h);
+  let key;
+  if (cropping) key = 'crop|' + it.id;
+  else {
+    const on = CHIPS.map(([, a, b]) => (near(it.w, a) && near(it.h, b)) || (near(it.w, b) && near(it.h, a)) ? 1 : 0).join('') +
+      (near(it.w, W) && near(it.h, H) ? 1 : 0);
+    key = `sel|${it.id}|${W}x${H}|${readout}|${on}`;
+  }
+  if (key !== tbKey) {
+    tbKey = key;
+    if (cropping) {
+      toolbar.innerHTML = `<span class="tb-label">Crop</span><span class="tb-sep"></span>` +
+        `<label class="tb-zoom" title="Zoom">${ICON.imgSmall}<input type="range" id="crop-zoom" min="1" max="5" step="0.01" aria-label="Zoom">${ICON.imgLarge}</label>` +
+        `<button class="tb-done" data-act="done">Done</button>`;
+    } else {
+      const chips = CHIPS.filter(([, a, b]) => chipFits(a, b, W, H)).map(([label, a, b]) => {
+        const on = (near(it.w, a) && near(it.h, b)) || (near(it.w, b) && near(it.h, a));
+        return `<button class="chip${on ? ' on' : ''}" data-act="chip" data-a="${a}" data-b="${b}">${label}</button>`;
+      }).join('');
+      const full = near(it.w, W) && near(it.h, H);
+      toolbar.innerHTML = `<span class="tb-readout" id="tb-readout">${readout}</span><span class="tb-sep"></span>` + chips +
+        `<button class="chip${full ? ' on' : ''}" data-act="full">Full sheet</button><span class="tb-sep"></span>` +
+        `<button class="tb-btn" data-act="swap" title="Swap orientation" aria-label="Swap orientation">${ICON.swap}</button>` +
+        `<button class="tb-btn" data-act="crop" title="Crop" aria-label="Crop">${ICON.crop}</button>` +
+        `<button class="tb-btn" data-act="rotate" title="Rotate" aria-label="Rotate">${ICON.rotate}</button>` +
+        `<button class="tb-btn" data-act="dup" title="Duplicate" aria-label="Duplicate">${ICON.dup}</button>` +
+        `<button class="tb-btn danger" data-act="del" title="Delete" aria-label="Delete">${ICON.trash}</button>`;
+    }
+  }
+  if (cropping) {
+    const r = $('crop-zoom');
+    if (r && document.activeElement !== r) r.value = it.crop.z;
+  }
+  toolbar.hidden = false;
+  positionToolbar();
+}
+function positionToolbar() {
+  if (toolbar.hidden || selbox.hidden) return;
+  const c = center.getBoundingClientRect(), d = desk.getBoundingClientRect(), b = selbox.getBoundingClientRect();
+  const tw = toolbar.offsetWidth, th = toolbar.offsetHeight, gap = 12;
+  const minL = d.left - c.left + 8, maxL = d.left - c.left + desk.clientWidth - tw - 8;
+  const left = clamp(b.left + b.width / 2 - c.left - tw / 2, minL, Math.max(minL, maxL));
+  const visTop = d.top - c.top + 8, visBot = d.top - c.top + desk.clientHeight - 8;
+  let top = b.top - c.top - th - gap;
+  if (top < visTop) {
+    top = b.bottom - c.top + gap;
+    if (top + th > visBot) top = visTop;
+  }
+  top = clamp(top, visTop, Math.max(visTop, visBot - th));
+  toolbar.style.left = Math.round(left) + 'px';
+  toolbar.style.top = Math.round(top) + 'px';
+}
+
+function renderTop(s) {
+  document.querySelectorAll('#size-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.size === s.size));
+  document.querySelectorAll('#orient-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.orient === s.orient));
+  $('undo').disabled = !past.length && !ui.crop;
+  $('redo').disabled = !future.length;
+  $('zoom-pct').textContent = Math.round(ui.ppi / 96 * 100) + '%';
+  $('zoom-fit').setAttribute('aria-pressed', ui.zoom === 'fit');
+  $('print-btn').disabled = !s.items.length;
+}
+
+let tabsKey = '';
+function renderTabs() {
+  const key = doc.current + '|' + doc.sheets.map(s => s.id + s.size + s.orient).join(',');
+  if (key === tabsKey) return;
+  tabsKey = key;
+  const many = doc.sheets.length > 1;
+  tabsEl.innerHTML = doc.sheets.map((s, i) => {
+    const { W, H } = dims(s);
+    return `<div class="tab${i === doc.current ? ' on' : ''}${many ? ' closable' : ''}">` +
+      `<button class="tab-main" data-tab="${i}">Sheet ${i + 1}<span class="tab-size">${fmt(W)}×${fmt(H)}</span></button>` +
+      (many ? `<button class="tab-x" data-del="${i}" title="Delete sheet" aria-label="Delete Sheet ${i + 1}">${ICON.x}</button>` : '') +
+      `</div>`;
+  }).join('') + `<button class="tab-add" id="tab-add">${ICON.plus}Sheet</button>`;
+}
+
+let trayKey = '';
+function useCounts() {
+  const m = new Map();
+  for (const s of doc.sheets) for (const it of s.items) m.set(it.src, (m.get(it.src) || 0) + 1);
+  return m;
+}
+function renderTray() {
+  const counts = useCounts();
+  const ids = [...photos.keys()];
+  const key = ids.map(id => id + ':' + (counts.get(id) || 0)).join(',');
+  if (key === trayKey) return;
+  trayKey = key;
+  $('photo-count').textContent = ids.length;
+  $('tray-empty').hidden = ids.length > 0;
+  $('add-btn').hidden = ids.length === 0;
+  grid.innerHTML = ids.map(id => {
+    const p = photos.get(id), n = counts.get(id) || 0;
+    return `<button class="thumb" data-id="${id}" title="${esc(p.name)}" aria-label="${esc(p.name)}"><img src="${p.thumb}" alt="" draggable="false">` +
+      (n ? `<span class="badge">×${n}</span>` : '') + `</button>`;
+  }).join('');
+}
+
+/* ---------- Actions ---------- */
+function select(id) { ui.sel = id; }
+function placePhoto(pid, at) {
+  const p = photos.get(pid);
+  if (!p) return;
+  if (ui.crop) endCrop();
+  change(() => {
+    const s = cur();
+    const { W, H } = dims(s);
+    let { w, h } = defaultSize(p, W, H);
+    let x, y;
+    if (at) {
+      x = at.x - w / 2; y = at.y - h / 2;
+    } else {
+      let spot = null;
+      for (const long of [6, 5, 4, 3]) {
+        const sz = defaultSize(p, W, H, long);
+        spot = findSpot(s, sz.w, sz.h);
+        if (spot) { w = sz.w; h = sz.h; break; }
+      }
+      if (spot) ({ x, y } = spot);
+      else { const n = s.items.length % 8; x = (W - w) / 2 + n * 0.25; y = (H - h) / 2 + n * 0.25; }
+    }
+    const it = { id: uid('i'), src: pid, x, y, w, h, rot: 0, crop: { z: 1, x: 0, y: 0 } };
+    clampPos(it, W, H);
+    if (at) { const r = snapMove(s, it, it.x, it.y); it.x = r.x; it.y = r.y; }
+    s.items.push(it);
+    select(it.id);
+  });
+}
+function applySize(a, b) {
+  const it = findItem(ui.sel); if (!it) return;
+  change(() => {
+    const { W, H } = dims(cur());
+    const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+    const land = it.w > it.h + 1e-9;
+    let w = land ? Math.max(a, b) : Math.min(a, b), h = land ? Math.min(a, b) : Math.max(a, b);
+    if (w > W + 1e-9 || h > H + 1e-9) [w, h] = [h, w];
+    it.w = w; it.h = h;
+    fitIn(it, W, H);
+    it.x = cx - it.w / 2; it.y = cy - it.h / 2;
+    clampPos(it, W, H);
+  });
+}
+function applyFull() {
+  const it = findItem(ui.sel); if (!it) return;
+  change(() => { const { W, H } = dims(cur()); Object.assign(it, { x: 0, y: 0, w: W, h: H }); });
+}
+function swapOrientation() {
+  const it = findItem(ui.sel); if (!it) return;
+  change(() => {
+    const { W, H } = dims(cur());
+    const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+    [it.w, it.h] = [it.h, it.w];
+    fitIn(it, W, H);
+    it.x = cx - it.w / 2; it.y = cy - it.h / 2;
+    clampPos(it, W, H);
+  });
+}
+function rotateItem() {
+  const it = findItem(ui.sel); if (!it) return;
+  change(() => {
+    const { W, H } = dims(cur());
+    const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+    [it.w, it.h] = [it.h, it.w];
+    it.rot = (it.rot + 90) % 360;
+    it.crop = { z: it.crop.z, x: -it.crop.y || 0, y: it.crop.x || 0 };
+    fitIn(it, W, H);
+    it.x = cx - it.w / 2; it.y = cy - it.h / 2;
+    clampPos(it, W, H);
+  });
+}
+function duplicateItem() {
+  const it = findItem(ui.sel); if (!it) return;
+  if (ui.crop) endCrop();
+  change(() => {
+    const { W, H } = dims(cur());
+    const c = JSON.parse(JSON.stringify(it));
+    c.id = uid('i');
+    c.x += 0.25; c.y += 0.25;
+    clampPos(c, W, H);
+    if (near(c.x, it.x) && near(c.y, it.y)) { c.x -= 0.25; c.y -= 0.25; clampPos(c, W, H); }
+    cur().items.push(c);
+    select(c.id);
+  });
+}
+function deleteItem() {
+  const it = findItem(ui.sel); if (!it) return;
+  if (ui.crop) endCrop();
+  change(() => { const s = cur(); s.items = s.items.filter(i => i.id !== it.id); ui.sel = null; });
+}
+let nudgeT = 0;
+function nudge(dx, dy) {
+  const it = findItem(ui.sel); if (!it) return;
+  const prev = snap();
+  const { W, H } = dims(cur());
+  it.x += dx; it.y += dy;
+  clampPos(it, W, H);
+  const now = performance.now();
+  if (now - nudgeT > 700) commit(prev); else if (prev !== snap()) future = [];
+  nudgeT = now;
+  render();
+}
+function setSheetSize(size) {
+  if (cur().size === size) return;
+  if (ui.crop) endCrop();
+  change(() => {
+    const s = cur(); s.size = size;
+    const { W, H } = dims(s);
+    s.items.forEach(it => { fitIn(it, W, H); clampPos(it, W, H); });
+  });
+}
+function setOrient(o) {
+  if (cur().orient === o) return;
+  if (ui.crop) endCrop();
+  change(() => {
+    const s = cur(); s.orient = o;
+    const { W, H } = dims(s);
+    s.items.forEach(it => { fitIn(it, W, H); clampPos(it, W, H); });
+  });
+}
+function switchSheet(i) {
+  if (i === doc.current) return;
+  if (ui.crop) endCrop();
+  doc.current = i; ui.sel = null;
+  if (ui.zoom !== 'fit') ui.zoom = 'fit';
+  render();
+}
+function addSheet() {
+  if (ui.crop) endCrop();
+  change(() => { const s = cur(); doc.sheets.push(makeSheet(s.size, s.orient)); doc.current = doc.sheets.length - 1; ui.sel = null; ui.zoom = 'fit'; });
+}
+function deleteSheet(i) {
+  if (doc.sheets.length < 2) return;
+  if (ui.crop) endCrop();
+  change(() => {
+    doc.sheets.splice(i, 1);
+    if (doc.current >= doc.sheets.length) doc.current = doc.sheets.length - 1;
+    else if (i < doc.current) doc.current -= 1;
+    ui.sel = null;
+  });
+  toast(`Sheet ${i + 1} deleted`, { label: 'Undo', fn: undo });
+}
+function enterCrop(id) {
+  if (ui.crop === id) return;
+  if (ui.crop) endCrop();
+  ui.sel = id; ui.crop = id; ui.cropStart = snap();
+  render();
+}
+function endCrop() {
+  if (!ui.crop) return;
+  commit(ui.cropStart);
+  ui.crop = null; ui.cropStart = null;
+}
+function setCropZoom(it, z1) {
+  const p = photos.get(it.src); if (!p) return;
+  const g0 = geo(it, p), z0 = it.crop.z;
+  it.crop.z = clamp(z1, 1, 5);
+  const g1 = geo(it, p), k = it.crop.z / z0;
+  it.crop.x = g1.mx > 1e-9 ? clamp(g0.ox * k / g1.mx, -1, 1) : 0;
+  it.crop.y = g1.my > 1e-9 ? clamp(g0.oy * k / g1.my, -1, 1) : 0;
+}
+
+/* ---------- Zoom ---------- */
+function setZoom(ppi, anchor) {
+  const before = sheetEl.getBoundingClientRect();
+  const d = desk.getBoundingClientRect();
+  const ax = anchor ? anchor.x : d.left + desk.clientWidth / 2, ay = anchor ? anchor.y : d.top + desk.clientHeight / 2;
+  const ix = (ax - before.left) / ui.ppi, iy = (ay - before.top) / ui.ppi;
+  ui.zoom = clamp(ppi, 3, 400);
+  render();
+  const after = sheetEl.getBoundingClientRect();
+  desk.scrollLeft += after.left + ix * ui.ppi - ax;
+  desk.scrollTop += after.top + iy * ui.ppi - ay;
+  positionToolbar();
+}
+function zoomStep(dir) {
+  const pct = ui.ppi / 96;
+  const next = dir > 0 ? ZOOMS.find(z => z > pct * 1.001) : [...ZOOMS].reverse().find(z => z < pct * 0.999);
+  if (next) setZoom(next * 96);
+}
+function zoomFit() { ui.zoom = 'fit'; render(); desk.scrollLeft = 0; desk.scrollTop = 0; positionToolbar(); }
+
+/* ---------- Pointer: sheet ---------- */
+function pointerIn(e) {
+  const r = sheetEl.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / ui.ppi, y: (e.clientY - r.top) / ui.ppi };
+}
+let lastTap = null;
+stage.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  if (ui.gesture) return;
+  const handle = e.target.closest('.h');
+  const itemEl = e.target.closest('.item');
+  if (ui.crop) {
+    const it = findItem(ui.crop);
+    if (it && (e.target === ghostEl || (itemEl && itemEl.dataset.id === ui.crop))) { startPan(e, it); return; }
+    endCrop();
+    render();
+  }
+  if (handle && ui.sel) { startResize(e, findItem(ui.sel), handle.dataset.h); return; }
+  if (itemEl) {
+    const id = itemEl.dataset.id, now = performance.now();
+    if (lastTap && lastTap.id === id && now - lastTap.t < 400 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 12) {
+      lastTap = null;
+      e.preventDefault();
+      enterCrop(id);
+      return;
+    }
+    lastTap = { id, t: now, x: e.clientX, y: e.clientY };
+    select(id);
+    startMove(e, findItem(id));
+    render();
+    return;
+  }
+  lastTap = null;
+  if (ui.sel) { ui.sel = null; render(); }
+});
+function beginGesture(e, g) {
+  e.preventDefault();
+  ui.gesture = g;
+  window.addEventListener('pointermove', onGestureMove);
+  window.addEventListener('pointerup', onGestureEnd);
+  window.addEventListener('pointercancel', onGestureEnd);
+}
+function startMove(e, it) {
+  beginGesture(e, { type: 'move', id: it.id, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y, prev: snap(), moved: false });
+}
+function imageRect(it, p) {
+  const g = geo(it, p);
+  return { l: it.x + g.cx - g.IW / 2, t: it.y + g.cy - g.IH / 2, IW: g.IW, IH: g.IH, s: g.s };
+}
+function startResize(e, it, h) {
+  if (!it) return;
+  const p = photos.get(it.src);
+  beginGesture(e, { type: 'resize', id: it.id, h, prev: snap(), o: JSON.parse(JSON.stringify(it)), img0: p ? imageRect(it, p) : null, moved: false });
+  render();
+}
+function startPan(e, it) {
+  beginGesture(e, { type: 'pan', id: it.id, sx: e.clientX, sy: e.clientY, c0: { ...it.crop }, moved: false });
+}
+function onGestureMove(e) {
+  const g = ui.gesture; if (!g) return;
+  const it = findItem(g.id); if (!it) return;
+  const s = cur(), { W, H } = dims(s), u = ui.ppi;
+  if (g.type === 'move') {
+    const dx = e.clientX - g.sx, dy = e.clientY - g.sy;
+    if (!g.moved && Math.hypot(dx, dy) < 3) return;
+    g.moved = true;
+    const r = snapMove(s, it, g.ox + dx / u, g.oy + dy / u);
+    it.x = r.x; it.y = r.y; ui.guides = r.guides;
+  } else if (g.type === 'resize') {
+    g.moved = true;
+    resizeTo(g, it, pointerIn(e), W, H);
+  } else if (g.type === 'pan') {
+    g.moved = true;
+    const p = photos.get(it.src); if (!p) return;
+    const g0 = geo({ ...it, crop: g.c0 }, p);
+    const ox = g.c0.x * g0.mx + (e.clientX - g.sx) / u, oy = g.c0.y * g0.my + (e.clientY - g.sy) / u;
+    it.crop.x = g0.mx > 1e-9 ? clamp(ox / g0.mx, -1, 1) : 0;
+    it.crop.y = g0.my > 1e-9 ? clamp(oy / g0.my, -1, 1) : 0;
+  }
+  requestRender();
+}
+function onGestureEnd() {
+  const g = ui.gesture; if (!g) return;
+  ui.gesture = null;
+  window.removeEventListener('pointermove', onGestureMove);
+  window.removeEventListener('pointerup', onGestureEnd);
+  window.removeEventListener('pointercancel', onGestureEnd);
+  ui.guides = [];
+  if (g.type !== 'pan') commit(g.prev);
+  render();
+}
+function snapMove(s, it, nx, ny) {
+  const { W, H } = dims(s), th = SNAP_PX / ui.ppi;
+  nx = clamp(nx, 0, Math.max(0, W - it.w));
+  ny = clamp(ny, 0, Math.max(0, H - it.h));
+  const ex = [0, SAFE, W / 2, W - SAFE, W], cx = [W / 2];
+  const ey = [0, SAFE, H / 2, H - SAFE, H], cy = [H / 2];
+  for (const o of s.items) {
+    if (o.id === it.id) continue;
+    ex.push(o.x, o.x + o.w); cx.push(o.x + o.w / 2);
+    ey.push(o.y, o.y + o.h); cy.push(o.y + o.h / 2);
+  }
+  const best = (pos, size, edges, centers) => {
+    let b = null;
+    const test = (from, targets) => { for (const t of targets) { const d = t - from; if (Math.abs(d) <= th && (b === null || Math.abs(d) < Math.abs(b))) b = d; } };
+    test(pos, edges); test(pos + size, edges); test(pos + size / 2, centers);
+    return b;
+  };
+  const bx = best(nx, it.w, ex, cx), by = best(ny, it.h, ey, cy);
+  if (bx !== null) nx = clamp(nx + bx, 0, Math.max(0, W - it.w));
+  if (by !== null) ny = clamp(ny + by, 0, Math.max(0, H - it.h));
+  const guides = [];
+  const collect = (on, pos, size, edges, centers, v) => {
+    if (!on) return;
+    const hit = new Set();
+    for (const t of edges) if (near(t, pos, 1e-6) || near(t, pos + size, 1e-6)) hit.add(t);
+    for (const t of centers) if (near(t, pos + size / 2, 1e-6)) hit.add(t);
+    for (const t of hit) guides.push({ v, at: t });
+  };
+  collect(bx !== null, nx, it.w, ex, cx, true);
+  collect(by !== null, ny, it.h, ey, cy, false);
+  return { x: nx, y: ny, guides };
+}
+function resizeTo(g, it, pt, W, H) {
+  const o = g.o, h = g.h;
+  if (h.length === 2) {
+    const west = h.includes('w'), north = h.includes('n');
+    const ax = west ? o.x + o.w : o.x, ay = north ? o.y + o.h : o.y;
+    const dw = west ? ax - pt.x : pt.x - ax, dh = north ? ay - pt.y : pt.y - ay;
+    const availW = west ? ax : W - ax, availH = north ? ay : H - ay;
+    let k = (dw * o.w + dh * o.h) / (o.w * o.w + o.h * o.h);
+    const kmin = Math.max(MIN / o.w, MIN / o.h), kmax = Math.min(availW / o.w, availH / o.h);
+    k = clamp(k, Math.min(kmin, kmax), kmax);
+    let w = o.w * k, hh = o.h * k;
+    const sp = snapPair(w, hh, W, H);
+    if (sp && sp.w <= availW + 1e-9 && sp.h <= availH + 1e-9) { w = sp.w; hh = sp.h; }
+    else {
+      w = r8(w); hh = r8(hh);
+      if (w > availW) w = Math.max(MIN, f8(availW));
+      if (hh > availH) hh = Math.max(MIN, f8(availH));
+      w = Math.min(Math.max(w, MIN), availW); hh = Math.min(Math.max(hh, MIN), availH);
+    }
+    it.w = w; it.h = hh;
+    it.x = west ? ax - w : ax;
+    it.y = north ? ay - hh : ay;
+    it.crop = { ...o.crop };
+  } else {
+    let x = o.x, y = o.y, w = o.w, hh = o.h;
+    if (h === 'e') w = snapSide(pt.x - o.x, o.h, W - o.x, W, H);
+    if (h === 'w') { const right = o.x + o.w; w = snapSide(right - pt.x, o.h, right, W, H); x = right - w; }
+    if (h === 's') hh = snapSide(pt.y - o.y, o.w, H - o.y, W, H);
+    if (h === 'n') { const bottom = o.y + o.h; hh = snapSide(bottom - pt.y, o.w, bottom, W, H); y = bottom - hh; }
+    Object.assign(it, { x, y, w, h: hh });
+    const p = photos.get(it.src);
+    if (p && g.img0) recropFixed(it, p, g.img0);
+  }
+}
+// Side resize trims or extends the frame while the image stays put on the page (zooming only if it must).
+function recropFixed(it, p, r0) {
+  const turned = it.rot % 180 !== 0;
+  const rw = turned ? p.h : p.w, rh = turned ? p.w : p.h;
+  const cover = Math.max(it.w / rw, it.h / rh);
+  const s = Math.max(r0.s, cover);
+  const IW = rw * s, IH = rh * s;
+  let l = r0.l, t = r0.t;
+  if (s > r0.s + 1e-12) { l = r0.l + r0.IW / 2 - IW / 2; t = r0.t + r0.IH / 2 - IH / 2; }
+  l = clamp(l, it.x + it.w - IW, it.x);
+  t = clamp(t, it.y + it.h - IH, it.y);
+  const mx = (IW - it.w) / 2, my = (IH - it.h) / 2;
+  const ox = l + IW / 2 - (it.x + it.w / 2), oy = t + IH / 2 - (it.y + it.h / 2);
+  it.crop = { z: s / cover, x: mx > 1e-9 ? clamp(ox / mx, -1, 1) : 0, y: my > 1e-9 ? clamp(oy / my, -1, 1) : 0 };
+}
+
+desk.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    setZoom(ui.ppi * Math.exp(-e.deltaY * 0.0025), { x: e.clientX, y: e.clientY });
+    return;
+  }
+  if (ui.crop && (e.target === ghostEl || e.target.closest('.item'))) {
+    e.preventDefault();
+    const it = findItem(ui.crop);
+    if (it) { setCropZoom(it, it.crop.z * Math.exp(-e.deltaY * 0.002)); render(); }
+  }
+}, { passive: false });
+desk.addEventListener('scroll', positionToolbar);
+new ResizeObserver(() => render()).observe(desk);
+
+/* ---------- Toolbar ---------- */
+toolbar.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'chip') applySize(+b.dataset.a, +b.dataset.b);
+  else if (act === 'full') applyFull();
+  else if (act === 'swap') swapOrientation();
+  else if (act === 'crop') enterCrop(ui.sel);
+  else if (act === 'rotate') rotateItem();
+  else if (act === 'dup') duplicateItem();
+  else if (act === 'del') deleteItem();
+  else if (act === 'done') { endCrop(); render(); }
+});
+toolbar.addEventListener('input', e => {
+  if (e.target.id !== 'crop-zoom') return;
+  const it = findItem(ui.crop); if (!it) return;
+  setCropZoom(it, +e.target.value);
+  requestRender();
+});
+
+/* ---------- Tray: click to place, drag onto the sheet ---------- */
+grid.addEventListener('dragstart', e => e.preventDefault());
+grid.addEventListener('pointerdown', e => {
+  const th = e.target.closest('.thumb'); if (!th) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const pid = th.dataset.id, p = photos.get(pid);
+  const d = { sx: e.clientX, sy: e.clientY, dragging: false, ghost: null };
+  const overSheet = ev => {
+    const r = sheetEl.getBoundingClientRect(), dr = desk.getBoundingClientRect();
+    return ev.clientX >= Math.max(r.left, dr.left) && ev.clientX <= Math.min(r.right, dr.right) &&
+      ev.clientY >= Math.max(r.top, dr.top) && ev.clientY <= Math.min(r.bottom, dr.bottom);
+  };
+  const move = ev => {
+    if (!d.dragging) {
+      if (Math.hypot(ev.clientX - d.sx, ev.clientY - d.sy) < 5) return;
+      d.dragging = true;
+      d.ghost = document.createElement('div');
+      d.ghost.className = 'drag-ghost';
+      d.ghost.innerHTML = `<img src="${p.thumb}" alt="">`;
+      document.body.appendChild(d.ghost);
+    }
+    ev.preventDefault();
+    const on = overSheet(ev);
+    let w = 96, h = 96;
+    if (on) { const { W, H } = dims(cur()); const sz = defaultSize(p, W, H); w = sz.w * ui.ppi; h = sz.h * ui.ppi; }
+    else { const ar = p.w / p.h; if (ar >= 1) h = 96 / ar; else w = 96 * ar; }
+    d.ghost.classList.toggle('on-sheet', on);
+    Object.assign(d.ghost.style, { left: ev.clientX + 'px', top: ev.clientY + 'px', width: w + 'px', height: h + 'px' });
+  };
+  const end = (ev, cancelled) => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    window.removeEventListener('pointercancel', cancel);
+    if (d.ghost) d.ghost.remove();
+    if (cancelled) return;
+    if (d.dragging) { if (overSheet(ev)) placePhoto(pid, pointerIn(ev)); }
+    else placePhoto(pid);
+  };
+  const up = ev => end(ev, false), cancel = ev => end(ev, true);
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  window.addEventListener('pointercancel', cancel);
+});
+grid.addEventListener('click', e => {
+  if (e.detail !== 0) return;       // keyboard activation only; pointer placement happens on pointerup
+  const th = e.target.closest('.thumb'); if (th) placePhoto(th.dataset.id);
+});
+
+/* ---------- Bringing photos in ---------- */
+const scripts = {};
+function loadLib(name) {
+  if (!scripts[name]) scripts[name] = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = LIBS[name].src; s.integrity = LIBS[name].integrity; s.crossOrigin = 'anonymous';
+    s.onload = res; s.onerror = () => { delete scripts[name]; rej(new Error('Could not load ' + name)); };
+    document.head.appendChild(s);
+  });
+  return scripts[name];
+}
+const extOf = name => (name.match(/\.([^.\/\\]+)$/) || [, ''])[1].toLowerCase();
+const isZip = f => /\.zip$/i.test(f.name) || /zip/.test(f.type);
+const isHeic = (name, type) => /^(heic|heif)$/.test(extOf(name)) || /heic|heif/i.test(type || '');
+function loadImg(url) {
+  return new Promise((res, rej) => {
+    const i = new Image();
+    i.decoding = 'async';
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error('Unreadable image'));
+    i.src = url;
+  });
+}
+function scaledUrl(img, max, q) {
+  const w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  return new Promise((res, rej) => {
+    try { c.toBlob(b => (b ? res(URL.createObjectURL(b)) : rej(new Error('toBlob failed'))), 'image/jpeg', q); }
+    catch (err) { rej(err); }   // tainted canvas (sample opened from a local file)
+  });
+}
+async function ingestUrl(url, name) {
+  const img = await loadImg(url);
+  const w = img.naturalWidth, h = img.naturalHeight;
+  let thumb = url, preview = url;
+  try {
+    thumb = await scaledUrl(img, 400, 0.82);
+    if (Math.max(w, h) > 2000) preview = await scaledUrl(img, 2000, 0.9);
+  } catch (err) { thumb = url; preview = url; }
+  const id = uid('p');
+  photos.set(id, { id, name, w, h, thumb, preview, full: url });
+  renderTray();
+}
+async function toDisplayable(blob, name) {
+  if (!isHeic(name, blob.type)) return blob;
+  try {
+    await loadLib('heic2any');
+    const out = await window.heic2any({ blob, toType: 'image/jpeg', quality: 0.92 });
+    return Array.isArray(out) ? out[0] : out;
+  } catch (err) {
+    return blob;   // Safari can show HEIC natively
+  }
+}
+const progress = { total: 0, done: 0 };
+function showProgress(text) { $('progress').hidden = false; $('progress-text').textContent = text; }
+function stepProgress() {
+  progress.done++;
+  $('progress-bar').style.width = (progress.total ? progress.done / progress.total * 100 : 0) + '%';
+}
+function hideProgress() { $('progress').hidden = true; $('progress-bar').style.width = '0'; }
+let busy = false;
+async function addFiles(fileList) {
+  const files = [...fileList];
+  if (!files.length || busy) return;
+  busy = true;
+  let skipped = 0, failed = 0;
+  const jobs = [];
+  try {
+    for (const f of files) {
+      if (isZip(f)) {
+        showProgress('Opening zip…');
+        try {
+          await loadLib('jszip');
+          const zip = await window.JSZip.loadAsync(f);
+          const entries = [];
+          zip.forEach((path, entry) => {
+            const base = path.split('/').pop();
+            if (entry.dir || path.includes('__MACOSX/') || base.startsWith('.')) return;
+            if (IMG_EXT.test(base)) entries.push({ path, base, entry }); else skipped++;
+          });
+          entries.sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true }));
+          for (const en of entries) jobs.push({ name: en.base, get: async () => new Blob([await en.entry.async('arraybuffer')], { type: MIME[extOf(en.base)] || '' }) });
+        } catch (err) { failed++; }
+      } else if (IMG_EXT.test(f.name) || /^image\/(jpeg|png|webp|heic|heif)$/.test(f.type)) {
+        jobs.push({ name: f.name, get: async () => f });
+      } else skipped++;
+    }
+    progress.total = jobs.length; progress.done = 0;
+    if (jobs.length) showProgress(`Adding ${jobs.length} photo${jobs.length === 1 ? '' : 's'}…`);
+    for (const j of jobs) {
+      try {
+        const blob = await toDisplayable(await j.get(), j.name);
+        await ingestUrl(URL.createObjectURL(blob), j.name);
+      } catch (err) { failed++; }
+      stepProgress();
+    }
+  } finally {
+    busy = false;
+    hideProgress();
+  }
+  const msgs = [];
+  if (failed) msgs.push(`${failed} couldn’t be read`);
+  if (skipped) msgs.push(`${skipped} skipped (not photos)`);
+  if (msgs.length) toast(msgs.join(' · '));
+}
+async function loadSamples() {
+  if (busy) return;
+  busy = true;
+  const names = Array.from({ length: 8 }, (_, i) => `sample-${i + 1}.jpg`);
+  progress.total = names.length; progress.done = 0;
+  showProgress(`Adding ${names.length} photos…`);
+  let failed = 0;
+  try {
+    for (const n of names) {
+      const url = 'samples/' + n;
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(r.status);
+        await ingestUrl(URL.createObjectURL(await r.blob()), n);
+      } catch (err) {
+        try { await ingestUrl(new URL(url, location.href).href, n); } catch (e2) { failed++; }
+      }
+      stepProgress();
+    }
+  } finally { busy = false; hideProgress(); }
+  if (failed) toast(`${failed} sample${failed === 1 ? '' : 's'} couldn’t load`);
+}
+$('choose-btn').addEventListener('click', () => fileInput.click());
+$('add-btn').addEventListener('click', () => fileInput.click());
+$('sample-btn').addEventListener('click', loadSamples);
+fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
+
+let dragDepth = 0;
+const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+window.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; $('drop-overlay').hidden = false; });
+window.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+window.addEventListener('dragleave', e => { if (!hasFiles(e)) return; dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) $('drop-overlay').hidden = true; });
+window.addEventListener('drop', e => {
+  if (!hasFiles(e)) return;
+  e.preventDefault(); dragDepth = 0; $('drop-overlay').hidden = true;
+  addFiles(e.dataTransfer.files);
+});
+
+/* ---------- Top bar, tabs ---------- */
+$('size-seg').addEventListener('click', e => { const b = e.target.closest('[data-size]'); if (b) setSheetSize(b.dataset.size); });
+$('orient-seg').addEventListener('click', e => { const b = e.target.closest('[data-orient]'); if (b) setOrient(b.dataset.orient); });
+$('undo').addEventListener('click', undo);
+$('redo').addEventListener('click', redo);
+$('zoom-in').addEventListener('click', () => zoomStep(1));
+$('zoom-out').addEventListener('click', () => zoomStep(-1));
+$('zoom-fit').addEventListener('click', zoomFit);
+tabsEl.addEventListener('click', e => {
+  const del = e.target.closest('[data-del]');
+  if (del) { deleteSheet(+del.dataset.del); return; }
+  const t = e.target.closest('[data-tab]');
+  if (t) { switchSheet(+t.dataset.tab); return; }
+  if (e.target.closest('#tab-add')) addSheet();
+});
+
+/* ---------- Toast ---------- */
+let toastTimer = 0;
+function toast(msg, action) {
+  toastEl.innerHTML = `<span>${esc(msg)}</span>` + (action ? `<button>${esc(action.label)}</button>` : '');
+  toastEl.hidden = false;
+  if (action) toastEl.querySelector('button').onclick = () => { toastEl.hidden = true; action.fn(); };
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastEl.hidden = true; }, 6000);
+}
+
+/* ---------- Print ---------- */
+function needsBorderless(s) {
+  const { W, H } = dims(s), e = 1e-6;
+  return s.items.some(it => it.x < SAFE - e || it.y < SAFE - e || it.x + it.w > W - SAFE + e || it.y + it.h > H - SAFE + e);
+}
+function openPrintPanel() {
+  const s = cur();
+  if (!s.items.length) return;
+  if (ui.crop) { endCrop(); render(); }
+  const { W, H } = dims(s);
+  $('pp-title').textContent = `Print Sheet ${doc.current + 1}`;
+  const rows = [['Paper size', esc(SIZES[s.size].paper)]];
+  if (s.orient === 'landscape') rows.push(['Layout', 'Landscape']);
+  rows.push(['Scale', '100%<small>Mac: turn off Scale to fit</small>']);
+  rows.push(['Margins', 'None']);
+  rows.push(['Paper type', 'Same as the paper<small>Glossy or matte</small>']);
+  let html = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  if (needsBorderless(s)) html += `<div class="hl"><dt>Borderless</dt><dd>On</dd></div>`;
+  $('pp-facts').innerHTML = html;
+  $('cut-toggle').checked = ui.cutMarks;
+  const pb = $('pp-print'); pb.disabled = false; pb.textContent = 'Print';
+  panel.hidden = false;
+  pb.focus();
+}
+function closePanel() { panel.hidden = true; }
+function cutMarksSvg(s, W, H) {
+  const gap = 1 / 16, len = 3 / 16;
+  let d = '';
+  for (const it of s.items) {
+    const L = it.x, R = it.x + it.w, T = it.y, B = it.y + it.h;
+    d += `M${L - gap - len} ${T}H${L - gap}M${L} ${T - gap - len}V${T - gap}`;
+    d += `M${R + gap} ${T}H${R + gap + len}M${R} ${T - gap - len}V${T - gap}`;
+    d += `M${L - gap - len} ${B}H${L - gap}M${L} ${B + gap}V${B + gap + len}`;
+    d += `M${R + gap} ${B}H${R + gap + len}M${R} ${B + gap}V${B + gap + len}`;
+  }
+  return `<svg class="p-marks" xmlns="http://www.w3.org/2000/svg" width="${W}in" height="${H}in" viewBox="0 0 ${W} ${H}"><path d="${d}" fill="none" stroke="#A8A8A8" stroke-width="0.007"/></svg>`;
+}
+function buildPrint(s, full = true) {
+  const { W, H } = dims(s);
+  pageStyle.textContent = `@page { size: ${W}in ${H}in; margin: 0; }`;
+  printRoot.style.width = W + 'in';
+  printRoot.style.height = H + 'in';
+  let html = ui.cutMarks ? cutMarksSvg(s, W, H) : '';
+  for (const it of s.items) {
+    const p = photos.get(it.src); if (!p) continue;
+    html += `<div class="p-item" style="left:${it.x}in;top:${it.y}in;width:${it.w}in;height:${it.h}in"><img alt="" src="${esc(full ? p.full : p.preview)}"></div>`;
+  }
+  printRoot.innerHTML = html;
+  const imgs = [...printRoot.querySelectorAll('img')];
+  s.items.filter(it => photos.get(it.src)).forEach((it, i) => imgStyle(imgs[i], it, photos.get(it.src), 1, 'in'));
+  printRoot.dataset.key = printKey(s);
+  return imgs;
+}
+const printKey = s => JSON.stringify([s, ui.cutMarks]);
+async function doPrint() {
+  const pb = $('pp-print');
+  pb.disabled = true; pb.textContent = 'Preparing…';
+  ui.cutMarks = $('cut-toggle').checked;
+  const imgs = buildPrint(cur(), true);
+  await Promise.all(imgs.map(img => img.decode().catch(() => new Promise(r => {
+    if (img.complete) r(); else { img.onload = r; img.onerror = r; }
+  }))));
+  closePanel();
+  pb.disabled = false; pb.textContent = 'Print';
+  window.print();
+}
+$('print-btn').addEventListener('click', () => { if (panel.hidden) openPrintPanel(); else closePanel(); });
+$('pp-cancel').addEventListener('click', closePanel);
+$('pp-print').addEventListener('click', doPrint);
+$('cut-toggle').addEventListener('change', e => { ui.cutMarks = e.target.checked; });
+// Printing from the browser menu instead of the Print button: rebuild if the sheet changed since the last print,
+// using the on-screen images, which are already decoded.
+window.addEventListener('beforeprint', () => { if (printRoot.dataset.key !== printKey(cur())) buildPrint(cur(), false); });
+
+/* ---------- Global pointer, keyboard, leaving ---------- */
+document.addEventListener('pointerdown', e => {
+  if (!panel.hidden && !panel.contains(e.target) && !e.target.closest('#print-btn')) closePanel();
+  if (ui.crop && !stage.contains(e.target) && !toolbar.contains(e.target)) { endCrop(); render(); }
+}, true);
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (t.matches && t.matches('input[type=text], input[type=number], textarea, [contenteditable]')) return;
+  const mod = e.metaKey || e.ctrlKey, k = e.key;
+  if (mod && (k === 'z' || k === 'Z')) { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+  if (mod && (k === 'y' || k === 'Y')) { e.preventDefault(); redo(); return; }
+  if (mod && (k === 'd' || k === 'D')) { e.preventDefault(); duplicateItem(); return; }
+  if (mod && (k === 'p' || k === 'P')) { e.preventDefault(); openPrintPanel(); return; }
+  if (mod) return;
+  if (k === 'Escape') {
+    if (!panel.hidden) { closePanel(); return; }
+    if (ui.crop) { endCrop(); render(); return; }
+    if (ui.sel) { ui.sel = null; render(); }
+    return;
+  }
+  if (k === 'Enter' && ui.crop) { e.preventDefault(); endCrop(); render(); return; }
+  if (!ui.sel || ui.gesture) return;
+  if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); deleteItem(); return; }
+  if (t.matches && t.matches('input[type=range]')) return;
+  if (k.startsWith('Arrow') && !ui.crop) {
+    e.preventDefault();
+    const st = e.shiftKey ? 0.25 : 1 / 16;
+    nudge(k === 'ArrowLeft' ? -st : k === 'ArrowRight' ? st : 0, k === 'ArrowUp' ? -st : k === 'ArrowDown' ? st : 0);
+  }
+});
+window.addEventListener('beforeunload', e => {
+  if (doc.sheets.some(s => s.items.length)) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// Read-only view of the layout, for checking print sizes from the console.
+window.scrapbook = { state: () => JSON.parse(snap()), photos: () => [...photos.values()].map(p => ({ id: p.id, name: p.name, w: p.w, h: p.h })) };
+
+render();
+})();
+</script>
+</body>
+</html>
