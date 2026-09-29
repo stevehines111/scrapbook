@@ -25,8 +25,8 @@ Top-bar button that packs the current sheet's photos into the safe area (the 0.2
 - Sizes and crops kept. Nothing shrinks or gets re-cropped.
 - Guillotine layout: every cut runs straight across the remaining piece, so a paper trimmer separates everything.
 - Edge to edge from the top-left of the safe area. A photo may turn 90° (frame and image together).
-- Best of many sort, fit and split rules: most photos on the sheet, then the largest empty rectangle, then fewest
-  turns. Same input, same result.
+- Best of many sort, fit and split rules: most photos on the sheet, then fewest turned photos (upright looks right
+  on screen), then the largest empty rectangle. Same input, same result.
 - Overflow goes to new sheets of the same size and orientation, right after the current one. A photo too big for the
   safe area either way round (e.g. Full sheet) stays where it is.
 - One undo step puts everything back, including removing added sheets.

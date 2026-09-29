@@ -896,7 +896,7 @@ function setCropZoom(it, z1) {
 // Packs the current sheet's photos into the safe area from the top-left, edge to edge, keeping every size and crop.
 // Guillotine packing: each free space is only ever split by one straight cut across its whole width or height, so a
 // paper trimmer can separate everything. A photo may turn 90° (frame and image together). Many sort, fit and split
-// rules are tried; the most photos on the sheet wins, then the largest empty rectangle left, then fewer turns.
+// rules are tried; the most photos on the sheet wins, then fewer turned photos, then the largest empty rectangle left.
 // Photos that do not fit go to new sheets right after this one. A photo too big for the safe area either way round
 // (e.g. Full sheet) stays where it is and the rest pack around it.
 const PK_EPS = 1e-7;
@@ -1007,7 +1007,7 @@ function pkBest(list, free0, area, fixed) {
     const key = run.placed.map(q => [q.p.i, q.t ? 1 : 0, q.x.toFixed(6), q.y.toFixed(6)].join(',')).sort().join(';');
     if (!seen.has(key)) seen.set(key, pkLargestEmpty(area, fixed.concat(run.placed)));
     const empty = seen.get(key), turns = run.placed.filter(q => q.t).length;
-    if (!best || n > best.n || empty > best.empty + PK_EPS || (empty >= best.empty - PK_EPS && turns < best.turns)) {
+    if (!best || n > best.n || turns < best.turns || (turns === best.turns && empty > best.empty + PK_EPS)) {
       best = { ...run, n, empty, turns };
     }
   }
