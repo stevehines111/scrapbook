@@ -20,7 +20,8 @@ nothing to install. Hosted on GitHub Pages: https://stevehines111.github.io/scra
   The image always covers its frame.
 - Images: ~400px tray thumbnails, ~2000px on-screen previews, the original file for printing.
 - `samples/`: 8 picsum.photos images (Unsplash license), used by "Try sample photos".
-- `relay/Code.gs`: optional Google Apps Script relay for Google Photos downloads (below). Not deployed.
+- `relay/Code.gs`: Google Apps Script relay for Google Photos downloads (below). Deployed 2026-09-29 on Steve's
+  Google account as "Scrapbook relay"; its URL is `RELAY_URL` in `index.html`.
 
 ## Google Photos
 - Google Cloud project `scrapbook-510121`: Photos Picker API on, OAuth app in Testing mode with two approved test users.
