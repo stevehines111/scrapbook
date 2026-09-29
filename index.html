@@ -130,6 +130,25 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .link { border: 0; background: none; padding: 2px; color: var(--ink-2); font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .link:hover { color: var(--ink); }
 
+/* Google Photos */
+.tray:not(.gp-on) .gp-only { display: none !important; }
+.gp-btn:disabled { opacity: .5; cursor: default; }
+.gp-row { padding: 0 16px 12px; }
+.gp-row .btn { width: 100%; justify-content: center; }
+.empty-actions { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.empty-actions .btn { justify-content: center; }
+.empty .gp-btn { background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+.empty .gp-btn:hover:not(:disabled) { background: var(--fill); }
+.gp-panel { margin: 0 16px 12px; padding: 12px; background: var(--fill); border-radius: 12px; display: grid; gap: 10px; }
+.gp-wait { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; min-height: 36px; }
+.gp-spin { width: 16px; height: 16px; flex: none; border-radius: 50%; border: 2px solid rgba(30, 27, 26, .16); border-top-color: var(--ink); animation: gp-spin .8s linear infinite; }
+@keyframes gp-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .gp-spin { animation-duration: 2.4s; } }
+.gp-pick { width: 100%; height: 44px; justify-content: center; font-size: 15px; padding: 0 18px; }
+.gp-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.gp-foot .btn { height: 30px; padding: 0 12px; background: #fff; font-size: 13px; }
+.gp-foot .btn:hover { background: var(--fill-2); }
+
 .center { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .desk { flex: 1; overflow: auto; position: relative; background: var(--desk); }
 .stage { position: relative; }
@@ -299,12 +318,21 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
       <h2>Photos <span class="count" id="photo-count">0</span></h2>
       <button class="btn" id="add-btn" hidden><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Add photos</button>
     </div>
+    <div class="gp-row gp-only" id="gp-row" hidden><button class="btn gp-btn" id="gp-add" disabled><svg class="i" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>Google Photos</button></div>
+    <div class="gp-panel gp-only" id="gp-panel" role="region" aria-label="Google Photos" hidden>
+      <div class="gp-wait" id="gp-wait" role="status"><span class="gp-spin"></span>Waiting for Google Photos…</div>
+      <button class="primary gp-pick" id="gp-pick">Pick photos</button>
+      <div class="gp-foot"><button class="btn" id="gp-cancel">Cancel</button><button class="link" id="gp-switch">Switch account</button></div>
+    </div>
     <div class="progress" id="progress" hidden><span id="progress-text"></span><div class="bar"><i id="progress-bar"></i></div></div>
     <div class="tray-body">
       <div class="empty" id="tray-empty">
         <div class="ring"><svg class="i" viewBox="0 0 24 24"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg></div>
         <p>Drop photos or a Google Photos zip</p>
-        <button class="btn dark" id="choose-btn">Choose photos</button>
+        <div class="empty-actions">
+          <button class="btn dark" id="choose-btn">Choose photos</button>
+          <button class="btn gp-btn gp-only" id="gp-choose" disabled><svg class="i" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>Google Photos</button>
+        </div>
         <button class="link" id="sample-btn">Try sample photos</button>
       </div>
       <div class="grid" id="grid"></div>
@@ -713,6 +741,7 @@ function renderTray() {
   $('photo-count').textContent = ids.length;
   $('tray-empty').hidden = ids.length > 0;
   $('add-btn').hidden = ids.length === 0;
+  $('gp-row').hidden = ids.length === 0;
   grid.innerHTML = ids.map(id => {
     const p = photos.get(id), n = counts.get(id) || 0;
     return `<button class="thumb" data-id="${id}" title="${esc(p.name)}" aria-label="${esc(p.name)}"><img src="${p.thumb}" alt="" draggable="false">` +
@@ -1306,6 +1335,270 @@ window.addEventListener('drop', e => {
   e.preventDefault(); dragDepth = 0; $('drop-overlay').hidden = true;
   addFiles(e.dataTransfer.files);
 });
+
+/* ---------- Google Photos ---------- */
+// Sign in with Google Identity Services, pick in the Google Photos Picker, download the picked photos at full
+// resolution straight into this page and hand them to the normal import (ingestUrl). The token lives in memory only.
+const GP_CLIENT_ID = '513388922895-t19kimvqn3g27m9he4lflflnn8ldbn1b.apps.googleusercontent.com';
+const GP_ORIGINS = ['https://stevehines111.github.io', 'http://localhost:8000'];   // the OAuth client's authorized origins
+const RELAY_URL = '';   // Apps Script web app URL (relay/Code.gs, see CLAUDE.md); empty = no relay
+const GP_SCOPE = 'https://www.googleapis.com/auth/photospicker.mediaitems.readonly';
+const GP_API = 'https://photospicker.googleapis.com/v1';
+const GP_PARALLEL = 4;
+const gp = { client: null, token: '', exp: 0, connected: false, pending: null, run: 0, state: 'idle', session: null, tab: null, relay: false };
+const gpSleep = ms => new Promise(r => setTimeout(r, ms));
+const gpDur = (v, dflt) => { const n = parseFloat(v); return Number.isFinite(n) ? n * 1000 : dflt; };   // "5s" -> 5000
+const gpHasToken = () => !!gp.token && Date.now() < gp.exp;
+const gpPlural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+function gpInit() {
+  // Sign-in only works on the authorized origins. ?gp=test shows the button on a local test server (mocked Google).
+  const test = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).get('gp') === 'test';
+  if (!GP_ORIGINS.includes(location.origin) && !test) return;
+  document.querySelector('.tray').classList.add('gp-on');
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true;
+  s.onload = () => {
+    try {
+      gp.client = google.accounts.oauth2.initTokenClient({
+        client_id: GP_CLIENT_ID,
+        scope: GP_SCOPE,
+        callback: gpTokenResult,
+        error_callback: e => gpTokenResult({ error: (e && e.type) || 'error' }),
+      });
+      $('gp-add').disabled = $('gp-choose').disabled = false;
+    } catch (err) { gpOff(err); }
+  };
+  s.onerror = () => gpOff(new Error('Google sign-in script did not load'));
+  document.head.appendChild(s);
+}
+function gpOff(err) {
+  console.error('Google Photos unavailable:', err);
+  document.querySelector('.tray').classList.remove('gp-on');
+}
+
+// Must run synchronously inside a click so the Google sign-in popup is not blocked.
+function gpSignIn(prompt) {
+  return new Promise(resolve => {
+    if (gp.pending) gp.pending(null);   // an earlier sign-in that never reported back
+    gp.pending = resolve;
+    gp.client.requestAccessToken({ prompt });
+  }).then(ok => { if (ok === false) toast('Google sign-in didn’t finish'); return !!ok; });
+}
+function gpTokenResult(r) {
+  const done = gp.pending;
+  gp.pending = null;
+  const ok = !!(r && r.access_token && !r.error) && (!r.scope || r.scope.split(' ').includes(GP_SCOPE));
+  if (ok) {
+    gp.token = r.access_token;
+    gp.exp = Date.now() + ((Number(r.expires_in) || 3600) - 60) * 1000;
+    gp.connected = true;
+  } else console.warn('Google sign-in:', (r && r.error) || 'Photos permission not granted');
+  if (done) done(ok);
+}
+
+function gpPanel(state) {
+  gp.state = state || 'idle';
+  $('gp-panel').hidden = state !== 'waiting' && state !== 'ready';
+  $('gp-wait').hidden = state !== 'waiting';
+  $('gp-pick').hidden = state !== 'ready';
+}
+function gpCloseTab() {
+  try { if (gp.tab && !gp.tab.closed) gp.tab.close(); } catch (err) { /* already gone */ }
+  gp.tab = null;
+}
+function gpCancel() {
+  if (gp.state === 'adding') return;
+  gp.run++;
+  if (gp.session) { gpDeleteSession(gp.session.id); gp.session = null; }
+  gpCloseTab();
+  gpPanel(null);
+}
+
+// Google Photos button. With a live token the picker opens straight away; otherwise sign in first, then the panel's
+// Pick photos button (a fresh click) opens it, because a tab opened after the sign-in popup would be blocked.
+function gpClick() {
+  if (!gp.client || gp.state === 'adding') return;
+  if (gpHasToken()) { gpPick(); return; }
+  gpCancel();
+  gpSignIn(gp.connected ? '' : 'select_account').then(ok => { if (ok) gpPanel('ready'); });
+}
+function gpSwitch() {
+  if (!gp.client || gp.state === 'adding') return;
+  gpCancel();
+  gp.token = ''; gp.exp = 0;
+  gpSignIn('select_account').then(ok => { if (ok) gpPanel('ready'); });
+}
+// Must run synchronously inside a click: the tab opens now and is pointed at the picker once the session exists.
+function gpPick() {
+  if (!gpHasToken()) { gpClick(); return; }
+  gpCancel();
+  gpRun(window.open('about:blank', '_blank'));
+}
+
+async function gpApi(method, path, body) {
+  const headers = { Authorization: 'Bearer ' + gp.token };
+  if (body) headers['Content-Type'] = 'application/json';
+  const r = await fetch(GP_API + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401) { gp.token = ''; gp.exp = 0; }
+  if (!r.ok) {
+    const detail = await r.text().catch(() => '');
+    throw Object.assign(new Error(`${method} ${path}: HTTP ${r.status} ${detail.slice(0, 300)}`), { status: r.status });
+  }
+  return r.json().catch(() => ({}));
+}
+function gpDeleteSession(id) {
+  return gpApi('DELETE', '/sessions/' + encodeURIComponent(id)).catch(err => console.warn('Google Photos: session not deleted', err));
+}
+
+async function gpRun(tab) {
+  const run = ++gp.run;
+  gp.tab = tab;
+  gpPanel('waiting');
+  let msg = '';
+  try {
+    const session = await gpApi('POST', '/sessions', {});
+    if (run !== gp.run) { gpDeleteSession(session.id); return; }
+    gp.session = session;
+    const url = session.pickerUri.replace(/\/+$/, '') + '/autoclose';
+    if (tab && tab.closed) { gpCancel(); return; }            // she closed the new tab straight away
+    if (tab) tab.location.replace(url);
+    else if (!(gp.tab = window.open(url, '_blank'))) {       // popup blocked: offer a fresh click
+      gpCancel(); gpPanel('ready'); return;
+    }
+    const result = await gpPoll(run, session);
+    if (run !== gp.run) return;
+    if (result === 'timeout') { msg = 'Google Photos timed out'; return; }
+    gpPanel('adding');
+    gpCloseTab();
+    const items = await gpListPhotos(session.id);
+    if (items.length) await gpImport(items);                  // nothing picked: close quietly
+  } catch (err) {
+    console.error('Google Photos:', err);
+    if (run === gp.run) msg = err.status === 401 ? 'Google sign-in didn’t finish' : 'Couldn’t reach Google Photos';
+  } finally {
+    if (run === gp.run) {
+      gpCloseTab();
+      if (gp.session) { gpDeleteSession(gp.session.id); gp.session = null; }
+      gpPanel(null);
+      if (msg) toast(msg);
+    }
+  }
+}
+
+// Polls at the interval Google asks for, stops at its timeout, and pauses while this tab is hidden.
+async function gpPoll(run, session) {
+  let cfg = session.pollingConfig || {};
+  let wait = gpDur(cfg.pollInterval, 5000);
+  let deadline = Date.now() + gpDur(cfg.timeoutIn, 30 * 60000);
+  for (;;) {
+    await gpSleep(Math.max(1000, wait));
+    if (run !== gp.run) return 'cancelled';
+    if (document.hidden) await new Promise(res => {
+      const on = () => { if (!document.hidden) { document.removeEventListener('visibilitychange', on); res(); } };
+      document.addEventListener('visibilitychange', on);
+    });
+    if (run !== gp.run) return 'cancelled';
+    const s = await gpApi('GET', '/sessions/' + encodeURIComponent(session.id));
+    if (run !== gp.run) return 'cancelled';
+    if (s.mediaItemsSet) return 'set';
+    if (s.pollingConfig) {
+      cfg = s.pollingConfig;
+      wait = gpDur(cfg.pollInterval, wait);
+      if (cfg.timeoutIn != null) deadline = Date.now() + gpDur(cfg.timeoutIn, 0);
+    }
+    if (Date.now() >= deadline) return 'timeout';
+  }
+}
+
+async function gpListPhotos(id) {
+  const out = [];
+  let page = '';
+  do {
+    const r = await gpApi('GET', `/mediaItems?sessionId=${encodeURIComponent(id)}&pageSize=100` + (page ? `&pageToken=${encodeURIComponent(page)}` : ''));
+    for (const m of r.mediaItems || []) if (m.type === 'PHOTO' && m.mediaFile && m.mediaFile.baseUrl) out.push(m);
+    page = r.nextPageToken || '';
+  } while (page);
+  return out;
+}
+
+// Full resolution: the item's own width and height (a JPEG even for HEIC originals). Base URLs expire after 60 minutes.
+function gpPhotoUrl(m) {
+  const meta = m.mediaFile.mediaFileMetadata || {};
+  return m.mediaFile.baseUrl + (meta.width && meta.height ? `=w${meta.width}-h${meta.height}` : '=d');
+}
+async function gpDownload(m, st) {
+  if (st.blocked) throw st.blocked;
+  const url = gpPhotoUrl(m);
+  if (gp.relay) return gpRelay(url);
+  let r;
+  try {
+    r = await fetch(url, { headers: { Authorization: 'Bearer ' + gp.token } });
+  } catch (err) {                                  // network or CORS failure, not an HTTP error
+    if (RELAY_URL) {
+      if (!gp.relay) console.warn('Google Photos: direct download failed, using the relay.', err);
+      gp.relay = true;
+      return gpRelay(url);
+    }
+    if (!st.blocked) {
+      console.error(`Google Photos download blocked: ${err.name}: ${err.message}. The direct fetch of the photo (with the ` +
+        `Authorization header) failed and no RELAY_URL is set. The browser's own CORS message above names the cause. URL: ${url}`, err);
+      st.blocked = Object.assign(new Error('Google Photos download blocked'), { gpBlocked: true });
+    }
+    throw st.blocked;
+  }
+  if (!r.ok) throw new Error(`HTTP ${r.status} downloading ${url}`);
+  return r.blob();
+}
+async function gpRelay(url) {
+  // text/plain keeps this a simple request, so the browser sends no CORS preflight to Apps Script.
+  const r = await fetch(RELAY_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ url, token: gp.token }) });
+  if (!r.ok) throw new Error(`Relay HTTP ${r.status}`);
+  const j = await r.json();
+  if (!j || !j.ok || !j.data) throw new Error('Relay: ' + ((j && j.error) || 'no data'));
+  const bin = atob(j.data), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: j.mimeType || 'image/jpeg' });
+}
+
+// Downloads 4 at a time and adds the photos in the order they were picked.
+async function gpImport(items) {
+  while (busy) await gpSleep(300);
+  busy = true;
+  const n = items.length, st = { blocked: null }, queue = [];
+  let active = 0, failed = 0, blocked = false;
+  const limited = fn => new Promise((res, rej) => {
+    const go = () => { active++; fn().then(res, rej).finally(() => { active--; if (queue.length) queue.shift()(); }); };
+    if (active < GP_PARALLEL) go(); else queue.push(go);
+  });
+  const downloads = items.map(m => limited(() => gpDownload(m, st)));
+  downloads.forEach(p => p.catch(() => {}));
+  progress.total = n; progress.done = 0;
+  showProgress(`Adding ${gpPlural(n, 'photo')}…`);
+  try {
+    for (let i = 0; i < n; i++) {
+      const name = items[i].mediaFile.filename || `Google photo ${i + 1}`;
+      try {
+        const blob = await toDisplayable(await downloads[i], '');
+        await ingestUrl(URL.createObjectURL(blob), name);
+      } catch (err) {
+        if (err && err.gpBlocked) blocked = true;
+        else { failed++; console.error(`Google Photos: couldn’t add ${name}`, err); }
+      }
+      stepProgress();
+    }
+  } finally { busy = false; hideProgress(); }
+  if (blocked) toast('Google Photos download blocked');
+  else if (failed) toast(`${gpPlural(failed, 'photo')} couldn’t be added`);
+}
+
+$('gp-add').addEventListener('click', gpClick);
+$('gp-choose').addEventListener('click', gpClick);
+$('gp-pick').addEventListener('click', gpPick);
+$('gp-cancel').addEventListener('click', gpCancel);
+$('gp-switch').addEventListener('click', gpSwitch);
+gpInit();
 
 /* ---------- Top bar, tabs ---------- */
 $('size-seg').addEventListener('click', e => { const b = e.target.closest('[data-size]'); if (b) setSheetSize(b.dataset.size); });
