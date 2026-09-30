@@ -9,6 +9,8 @@ nothing to install. Hosted on GitHub Pages: https://stevehines111.github.io/scra
 - Freeform layout: pick the sheet, drop photos, drag, resize, crop, nest, print. Packing only on the Auto organize button.
 - Sheet sizes: 13 × 19 (A3+), 8.5 × 11 (Letter), 4 × 6.
 - Photos come in as files, a Google Photos album zip, or picked straight from Google Photos (the Google Photos button).
+- Clearing the tray: × on a photo (or Delete on a focused one), Clear used (every photo on any sheet right now), Clear all.
+  Clearing never touches the sheets; undo brings photos back. No "printed" tracking: the browser can't tell a print from Cancel.
 - Public static page. Photos never leave the computer: no uploads, no server, no analytics. Google Photos come from
   Google straight to the browser (or through the relay on your own Google account, stored nowhere, if it is turned on).
 
@@ -18,6 +20,7 @@ nothing to install. Hosted on GitHub Pages: https://stevehines111.github.io/scra
 - DM Sans from Google Fonts, system font fallback.
 - Layout model is in inches. Each photo: x, y, w, h, rotation (0/90/180/270), crop (zoom >= 1, pan -1..1).
   The image always covers its frame.
+- Photos cleared from the tray stay loaded and are listed in `doc.hidden`, so sheets keep them and undo covers clearing.
 - Images: ~400px tray thumbnails, ~2000px on-screen previews, the original file for printing.
 - `samples/`: 8 picsum.photos images (Unsplash license), used by "Try sample photos".
 - `relay/Code.gs`: Google Apps Script relay for Google Photos downloads (below). Deployed 2026-09-29 on Steve's
@@ -60,6 +63,12 @@ Top-bar button that packs the current sheet's photos into the safe area (the 0.2
 - Overflow goes to new sheets of the same size and orientation, right after the current one. A photo too big for the
   safe area either way round (e.g. Full sheet) stays where it is.
 - One undo step puts everything back, including removing added sheets.
+
+All sheets (the arrow beside the button; on with 2+ sheets): same guarantees, across every sheet.
+- Sheets of the same paper size share one pool. Photos never move to a different paper size; portrait and landscape
+  sheets of the same paper do share.
+- Fills sheets first to last. Each takes the most photo area that fits (not the most photos), around any photo too big to move.
+- Overflow goes to new sheets after the last sheet of that size. Sheets it empties are removed; sheets that were blank stay.
 
 ## The print-size check (the one that matters)
 A wrong physical print size is the risk. Print sets `@page { size: <W>in <H>in; margin: 0 }` and draws the
