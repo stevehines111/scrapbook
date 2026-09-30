@@ -100,6 +100,23 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .btn svg.i { width: 16px; height: 16px; }
 .btn.organize { height: 38px; border-radius: 11px; padding: 0 15px 0 12px; }
 .btn.organize:disabled, .btn.organize:disabled:hover { background: var(--fill); color: #C9C3BE; cursor: default; }
+.split { display: inline-flex; position: relative; }
+.split .btn.organize { border-radius: 11px 0 0 11px; }
+.split .organize-more { height: 38px; width: 32px; padding: 0; justify-content: center; border-radius: 0 11px 11px 0; margin-left: 1px; background: var(--fill-2); }
+.split .organize-more:hover:not(:disabled) { background: #DFDAD4; }
+.split .organize-more:disabled { background: var(--fill); color: #C9C3BE; cursor: default; }
+.split .organize-more[aria-expanded="true"] { background: #DFDAD4; }
+.menu {
+  position: absolute; top: 46px; left: 0; min-width: 100%; z-index: 40; background: #fff; border-radius: 12px;
+  box-shadow: var(--shadow-pop); border: 1px solid rgba(0,0,0,.05); padding: 6px; display: grid; gap: 2px;
+}
+.menu button {
+  height: 38px; border: 0; background: transparent; border-radius: 8px; padding: 0 12px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; white-space: nowrap; text-align: left;
+}
+.menu button:hover:not(:disabled) { background: var(--fill); }
+.menu button:disabled { color: #C9C3BE; cursor: default; }
+.menu button small { font-weight: 500; color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 /* Main */
 .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 0; }
@@ -117,11 +134,25 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
   background: var(--fill); cursor: grab; touch-action: pan-y; display: block; width: 100%;
 }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; transition: transform .2s ease; }
-.thumb:hover img { transform: scale(1.04); }
+.cell { position: relative; }
+.cell:hover .thumb img { transform: scale(1.04); }
 .badge {
   position: absolute; top: 6px; right: 6px; background: rgba(30, 27, 26, .86); color: #fff; font-size: 11px; font-weight: 700;
   border-radius: 999px; padding: 2px 7px; font-variant-numeric: tabular-nums; pointer-events: none;
 }
+.thumb-x {
+  position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border: 0; border-radius: 50%; padding: 0; cursor: pointer;
+  background: rgba(30, 27, 26, .86); color: #fff; display: grid; place-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  opacity: 0; transition: opacity .12s;
+}
+.thumb-x svg.i { width: 13px; height: 13px; stroke-width: 2.6; }
+.thumb-x:hover { background: #D2333B; }
+.cell:hover .thumb-x, .cell:focus-within .thumb-x { opacity: 1; }
+@media (hover: none) { .thumb-x { opacity: 1; } }
+.tray-foot { border-top: 1px solid var(--line); padding: 12px 16px 14px; display: flex; gap: 8px; }
+.tray-foot .btn { flex: 1; justify-content: center; }
+.tray-foot .btn .count { background: #fff; }
+.tray-foot .btn:disabled, .tray-foot .btn:disabled:hover { background: var(--fill); color: #C9C3BE; cursor: default; }
 .empty {
   border: 1.5px dashed #D8D0C9; border-radius: 16px; padding: 30px 16px 22px; text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: 14px; background: #FBFAF8;
@@ -298,7 +329,13 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
       <button data-orient="portrait" title="Portrait" aria-label="Portrait"><svg class="i" viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="2"/></svg></button>
       <button data-orient="landscape" title="Landscape" aria-label="Landscape"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="11" rx="2"/></svg></button>
     </div>
-    <button class="btn organize" id="organize-btn"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="10" height="10" rx="1.5"/><rect x="15" y="3" width="6" height="10" rx="1.5"/><rect x="3" y="15" width="18" height="6" rx="1.5"/></svg>Auto organize</button>
+    <div class="split">
+      <button class="btn organize" id="organize-btn"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="10" height="10" rx="1.5"/><rect x="15" y="3" width="6" height="10" rx="1.5"/><rect x="3" y="15" width="18" height="6" rx="1.5"/></svg>Auto organize</button><button class="btn organize-more" id="organize-more" title="Organize options" aria-label="Organize options" aria-haspopup="menu" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="menu" id="organize-menu" role="menu" hidden>
+        <button role="menuitem" data-org="sheet">This sheet</button>
+        <button role="menuitem" data-org="all">All sheets <small id="organize-all-n"></small></button>
+      </div>
+    </div>
   </div>
   <div class="right-controls">
     <div class="group">
@@ -339,6 +376,10 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
         <button class="link" id="sample-btn">Try sample photos</button>
       </div>
       <div class="grid" id="grid"></div>
+    </div>
+    <div class="tray-foot" id="tray-foot" hidden>
+      <button class="btn" id="clear-used">Clear used <span class="count" id="used-count"></span></button>
+      <button class="btn" id="clear-all">Clear all</button>
     </div>
   </aside>
 
@@ -434,7 +475,8 @@ const fmtSize = (w, h) => `${fmt(w)} × ${fmt(h)} in`;
 /* ---------- State ---------- */
 const photos = new Map();   // id -> { id, name, w, h, thumb, preview, full }
 const makeSheet = (size, orient) => ({ id: uid('s'), size, orient, items: [] });
-let doc = { sheets: [makeSheet('13x19', 'portrait')], current: 0 };
+// hidden: photos cleared from the tray. They stay loaded, so sheets keep them and undo can bring them back.
+let doc = { sheets: [makeSheet('13x19', 'portrait')], current: 0, hidden: [] };
 const ui = { sel: null, crop: null, cropStart: null, zoom: 'fit', ppi: 30, cutMarks: true, guides: [], gesture: null };
 let past = [], future = [];
 
@@ -713,6 +755,11 @@ function renderTop(s) {
   $('zoom-fit').setAttribute('aria-pressed', ui.zoom === 'fit');
   $('print-btn').disabled = !s.items.length;
   $('organize-btn').disabled = !s.items.length;
+  const many = doc.sheets.length > 1 && doc.sheets.some(x => x.items.length);
+  $('organize-more').disabled = !many;
+  if (!many) closeOrganizeMenu();
+  $('organize-menu').querySelector('[data-org="sheet"]').disabled = !s.items.length;
+  $('organize-all-n').textContent = doc.sheets.length;
 }
 
 let tabsKey = '';
@@ -736,20 +783,27 @@ function useCounts() {
   for (const s of doc.sheets) for (const it of s.items) m.set(it.src, (m.get(it.src) || 0) + 1);
   return m;
 }
+const trayIds = () => { const gone = new Set(doc.hidden); return [...photos.keys()].filter(id => !gone.has(id)); };
 function renderTray() {
   const counts = useCounts();
-  const ids = [...photos.keys()];
+  const ids = trayIds();
   const key = ids.map(id => id + ':' + (counts.get(id) || 0)).join(',');
   if (key === trayKey) return;
   trayKey = key;
+  const used = ids.filter(id => counts.get(id)).length;
   $('photo-count').textContent = ids.length;
   $('tray-empty').hidden = ids.length > 0;
   $('add-btn').hidden = ids.length === 0;
   $('gp-row').hidden = ids.length === 0;
+  $('tray-foot').hidden = ids.length === 0;
+  $('clear-used').disabled = !used;
+  $('used-count').textContent = used;
+  $('used-count').hidden = !used;
   grid.innerHTML = ids.map(id => {
     const p = photos.get(id), n = counts.get(id) || 0;
-    return `<button class="thumb" data-id="${id}" title="${esc(p.name)}" aria-label="${esc(p.name)}"><img src="${p.thumb}" alt="" draggable="false">` +
-      (n ? `<span class="badge">×${n}</span>` : '') + `</button>`;
+    return `<div class="cell"><button class="thumb" data-id="${id}" title="${esc(p.name)}" aria-label="${esc(p.name)}"><img src="${p.thumb}" alt="" draggable="false">` +
+      (n ? `<span class="badge">×${n}</span>` : '') + `</button>` +
+      `<button class="thumb-x" data-remove="${id}" title="Remove" aria-label="Remove ${esc(p.name)}">${ICON.x}</button></div>`;
   }).join('');
 }
 
@@ -901,6 +955,14 @@ function deleteSheet(i) {
   });
   toast(`Sheet ${i + 1} deleted`, { label: 'Undo', fn: undo });
 }
+// Takes photos out of the tray only. Any already on a sheet stay there.
+function clearFromTray(ids) {
+  if (!ids.length) return;
+  change(() => { doc.hidden = [...new Set([...doc.hidden, ...ids])]; });
+  toast(`${ids.length} photo${ids.length === 1 ? '' : 's'} cleared`, { label: 'Undo', fn: undo });
+}
+function clearUsed() { const counts = useCounts(); clearFromTray(trayIds().filter(id => counts.get(id))); }
+function clearAll() { clearFromTray(trayIds()); }
 function enterCrop(id) {
   if (ui.crop === id) return;
   if (ui.crop) endCrop();
@@ -1026,54 +1088,61 @@ function pkFreeSpace(r, blocks) {
   }
   return [];   // covered, or no straight cut frees any of it
 }
-function pkBest(list, free0, area, fixed) {
+// byArea: the most photo area placed wins first (Auto organize all sheets), before the most photos.
+function pkBest(list, free0, area, fixed, byArea = false) {
   let best = null;
   const seen = new Map();
   for (let turn = 0; turn < 2; turn++) for (const order of PK_ORDERS) for (const fit of PK_FITS) for (const split of PK_SPLITS) {
     const run = pkRun(list, free0, order, fit, split, turn);
-    const n = run.placed.length;
-    if (best && n < best.n) continue;
+    const n = run.placed.length, used = byArea ? run.placed.reduce((a, q) => a + q.w * q.h, 0) : 0;
+    if (best && (used < best.used - PK_EPS || (used <= best.used + PK_EPS && n < best.n))) continue;
     const key = run.placed.map(q => [q.p.i, q.t ? 1 : 0, q.x.toFixed(6), q.y.toFixed(6)].join(',')).sort().join(';');
     if (!seen.has(key)) seen.set(key, pkLargestEmpty(area, fixed.concat(run.placed)));
     const empty = seen.get(key), turns = run.placed.filter(q => q.t).length;
-    if (!best || n > best.n || turns < best.turns || (turns === best.turns && empty > best.empty + PK_EPS)) {
-      best = { ...run, n, empty, turns };
+    if (!best || used > best.used + PK_EPS || n > best.n || turns < best.turns || (turns === best.turns && empty > best.empty + PK_EPS)) {
+      best = { ...run, n, used, empty, turns };
     }
   }
   return best;
+}
+function safeArea(s) { const { W, H } = dims(s); return { x: SAFE, y: SAFE, w: W - 2 * SAFE, h: H - 2 * SAFE }; }
+// A photo that fits the safe area upright or turned, with the ways it may go in; null for one too big either way round.
+// Turned is judged against the same rectangle both ways, so a photo that fits a portrait sheet fits the landscape one.
+function pkEntry(it, i, area) {
+  const as = it.w <= area.w + PK_EPS && it.h <= area.h + PK_EPS;
+  const turned = !near(it.w, it.h) && it.h <= area.w + PK_EPS && it.w <= area.h + PK_EPS;
+  if (!as && !turned) return null;
+  return { i, it, w: it.w, h: it.h, ways: [[!as], [...(as ? [false] : []), ...(turned ? [true] : [])]] };
+}
+// Moves a run's photos to their spots. Turning back toward upright keeps a photo turned by an earlier organize from
+// ending up upside down.
+function pkPlace(run) {
+  return run.placed.map(q => {
+    if (q.t) turnItem(q.p.it, q.p.it.rot === 90 ? -1 : 1);
+    q.p.it.x = q.x; q.p.it.y = q.y;
+    return q.p.it;
+  });
 }
 function autoOrganize() {
   const s = cur();
   if (!s.items.length || ui.gesture) return;
   if (ui.crop) endCrop();
-  const { W, H } = dims(s);
-  const area = { x: SAFE, y: SAFE, w: W - 2 * SAFE, h: H - 2 * SAFE };
+  const area = safeArea(s);
   const fixed = [], list = [];
-  s.items.forEach((it, i) => {
-    const as = it.w <= area.w + PK_EPS && it.h <= area.h + PK_EPS;
-    const turned = !near(it.w, it.h) && it.h <= area.w + PK_EPS && it.w <= area.h + PK_EPS;
-    if (!as && !turned) { fixed.push(it); return; }
-    list.push({ i, it, w: it.w, h: it.h, ways: [[!as], [...(as ? [false] : []), ...(turned ? [true] : [])]] });
-  });
+  s.items.forEach((it, i) => { const e = pkEntry(it, i, area); if (e) list.push(e); else fixed.push(it); });
   if (!list.length) { render(); return; }
   const added = [];
   let moved = 0;
   change(() => {
-    // Turning back toward upright keeps a photo turned by an earlier organize from ending up upside down.
-    const place = run => run.placed.map(q => {
-      if (q.t) turnItem(q.p.it, q.p.it.rot === 90 ? -1 : 1);
-      q.p.it.x = q.x; q.p.it.y = q.y;
-      return q.p.it;
-    });
     let run = pkBest(list, pkFreeSpace(area, fixed), area, fixed);
-    const keep = new Set(place(run));
+    const keep = new Set(pkPlace(run));
     s.items = s.items.filter(it => keep.has(it) || fixed.includes(it));
     let rest = run.left, at = doc.current;
     while (rest.length) {
       run = pkBest(rest, [area], area, []);
       if (!run.placed.length) { s.items.push(...rest.map(p => p.it)); break; }   // never lose a photo
       const ns = makeSheet(s.size, s.orient);
-      ns.items = place(run);
+      ns.items = pkPlace(run);
       doc.sheets.splice(++at, 0, ns);
       added.push(at + 1);
       moved += ns.items.length;
@@ -1085,6 +1154,53 @@ function autoOrganize() {
     const where = added.length === 1 ? `Sheet ${added[0]}` : `Sheets ${added[0]}–${added[added.length - 1]}`;
     toast(`${moved} photo${moved === 1 ? '' : 's'} moved to ${where}`);
   }
+}
+// Auto organize across every sheet. Sheets of the same paper size share one pool of photos; each in turn, first to last,
+// takes the most photo area that fits around any photo too big to move. What is left goes to new sheets after the last
+// sheet of that size. Sheets this empties are removed. Photos never move to a different paper size.
+function autoOrganizeAll() {
+  if (ui.gesture || !doc.sheets.some(s => s.items.length)) return;
+  if (ui.crop) endCrop();
+  const before = doc.sheets.length, prev = snap();
+  change(() => {
+    const had = new Set(doc.sheets.filter(s => s.items.length));
+    for (const size of [...new Set(doc.sheets.map(s => s.size))]) {
+      const group = doc.sheets.filter(s => s.size === size);
+      const fixedOf = new Map();
+      let rest = [], i = 0;
+      for (const s of group) {
+        const area = safeArea(s);
+        fixedOf.set(s, s.items.filter(it => !pkEntry(it, 0, area)));
+        for (const it of s.items) if (pkEntry(it, 0, area)) rest.push({ it, i: i++ });
+      }
+      if (!rest.length) continue;
+      const fill = s => {
+        const area = safeArea(s), fixed = fixedOf.get(s) || [];
+        const run = pkBest(rest.map(r => pkEntry(r.it, r.i, area)), pkFreeSpace(area, fixed), area, fixed, true);
+        s.items = [...fixed, ...pkPlace(run)];
+        rest = run.left.map(p => ({ it: p.it, i: p.i }));
+        return run.placed.length;
+      };
+      group.forEach(fill);
+      let last = group[group.length - 1];
+      while (rest.length) {
+        const ns = makeSheet(size, last.orient);
+        doc.sheets.splice(doc.sheets.indexOf(last) + 1, 0, ns);
+        last = ns;
+        if (!fill(ns)) { ns.items.push(...rest.map(r => r.it)); break; }   // never lose a photo
+      }
+    }
+    const was = doc.sheets[doc.current], order = doc.sheets;
+    doc.sheets = order.filter(s => s.items.length || !had.has(s));
+    let at = order.indexOf(was);
+    while (at > 0 && !doc.sheets.includes(order[at])) at--;
+    doc.current = Math.max(0, doc.sheets.indexOf(order[at]));
+    ui.sel = null;
+  });
+  if (snap() === prev) return;
+  const after = doc.sheets.length;
+  toast(after === before ? `${after} sheets organized` : `Packed into ${after} sheet${after === 1 ? '' : 's'} (was ${before})`,
+    { label: 'Undo', fn: undo });
 }
 
 /* ---------- Zoom ---------- */
@@ -1359,9 +1475,22 @@ grid.addEventListener('pointerdown', e => {
   window.addEventListener('pointercancel', cancel);
 });
 grid.addEventListener('click', e => {
+  const x = e.target.closest('[data-remove]');
+  if (x) { removeTrayPhoto(x.dataset.remove); return; }
   if (e.detail !== 0) return;       // keyboard activation only; pointer placement happens on pointerup
   const th = e.target.closest('.thumb'); if (th) placePhoto(th.dataset.id);
 });
+// Removes one photo from the tray and keeps keyboard focus in the tray, on the photo that took its place.
+function removeTrayPhoto(id) {
+  const at = trayIds().indexOf(id);
+  const hadFocus = grid.contains(document.activeElement);
+  clearFromTray([id]);
+  if (!hadFocus) return;
+  const thumbs = grid.querySelectorAll('.thumb');
+  if (thumbs.length) thumbs[Math.min(at, thumbs.length - 1)].focus();
+}
+$('clear-used').addEventListener('click', clearUsed);
+$('clear-all').addEventListener('click', clearAll);
 
 /* ---------- Bringing photos in ---------- */
 const scripts = {};
@@ -1779,6 +1908,19 @@ gpInit();
 $('size-seg').addEventListener('click', e => { const b = e.target.closest('[data-size]'); if (b) setSheetSize(b.dataset.size); });
 $('orient-seg').addEventListener('click', e => { const b = e.target.closest('[data-orient]'); if (b) setOrient(b.dataset.orient); });
 $('organize-btn').addEventListener('click', autoOrganize);
+function closeOrganizeMenu() { $('organize-menu').hidden = true; $('organize-more').setAttribute('aria-expanded', 'false'); }
+$('organize-more').addEventListener('click', () => {
+  const m = $('organize-menu');
+  if (!m.hidden) { closeOrganizeMenu(); return; }
+  m.hidden = false;
+  $('organize-more').setAttribute('aria-expanded', 'true');
+  const first = m.querySelector('button:not(:disabled)'); if (first) first.focus();
+});
+$('organize-menu').addEventListener('click', e => {
+  const b = e.target.closest('[data-org]'); if (!b || b.disabled) return;
+  closeOrganizeMenu();
+  if (b.dataset.org === 'all') autoOrganizeAll(); else autoOrganize();
+});
 $('undo').addEventListener('click', undo);
 $('redo').addEventListener('click', redo);
 $('zoom-in').addEventListener('click', () => zoomStep(1));
@@ -1879,6 +2021,7 @@ window.addEventListener('beforeprint', () => { if (printRoot.dataset.key !== pri
 /* ---------- Global pointer, keyboard, leaving ---------- */
 document.addEventListener('pointerdown', e => {
   if (!panel.hidden && !panel.contains(e.target) && !e.target.closest('#print-btn')) closePanel();
+  if (!$('organize-menu').hidden && !e.target.closest('.split')) closeOrganizeMenu();
   if (ui.crop && !stage.contains(e.target) && !toolbar.contains(e.target)) { endCrop(); render(); }
 }, true);
 document.addEventListener('keydown', e => {
@@ -1890,7 +2033,11 @@ document.addEventListener('keydown', e => {
   if (mod && (k === 'd' || k === 'D')) { e.preventDefault(); duplicateItem(); return; }
   if (mod && (k === 'p' || k === 'P')) { e.preventDefault(); openPrintPanel(); return; }
   if (mod) return;
+  if ((k === 'Delete' || k === 'Backspace') && t.classList && t.classList.contains('thumb')) {
+    e.preventDefault(); removeTrayPhoto(t.dataset.id); return;
+  }
   if (k === 'Escape') {
+    if (!$('organize-menu').hidden) { closeOrganizeMenu(); $('organize-more').focus(); return; }
     if (!panel.hidden) { closePanel(); return; }
     if (ui.crop) { endCrop(); render(); return; }
     if (ui.sel) { ui.sel = null; render(); }
