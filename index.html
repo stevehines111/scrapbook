@@ -59,6 +59,7 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 19px; letter-spacing: -0.02em; white-space: nowrap; }
 .brand svg { width: 26px; height: 26px; }
+@media (max-width: 1399px) { .brand .wordmark { display: none; } }   /* room for the saved status on a laptop screen */
 .center-controls { display: flex; align-items: center; gap: 10px; }
 .right-controls { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .seg { display: inline-flex; background: var(--fill); border-radius: 11px; padding: 3px; gap: 2px; }
@@ -117,6 +118,21 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .menu button:hover:not(:disabled) { background: var(--fill); }
 .menu button:disabled { color: #C9C3BE; cursor: default; }
 .menu button small { font-weight: 500; color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+.left-controls { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.file-wrap { position: relative; }
+.btn.file { height: 36px; padding: 0 8px 0 13px; gap: 4px; }
+.btn.file[aria-expanded="true"] { background: var(--fill-2); }
+.file-wrap .menu { min-width: 228px; }
+.save-state { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-3); font-size: 13px; font-weight: 500; white-space: nowrap; }
+.save-state svg.i { width: 15px; height: 15px; stroke-width: 2.4; }
+.save-state.bad { color: var(--accent-ink); font-weight: 600; }
+.save-state .use { border: 0; background: var(--ink); color: #fff; font-weight: 600; font-size: 12px; height: 26px; padding: 0 10px; border-radius: 7px; margin-left: 4px; cursor: pointer; }
+.save-state .use:hover { background: #3A3533; }
+.print-split #print-btn { border-radius: 11px 0 0 11px; }
+.print-split .print-more { width: 32px; padding: 0; justify-content: center; border-radius: 0 11px 11px 0; margin-left: 1px; }
+.print-split .print-more[aria-expanded="true"] { background: var(--accent-hover); }
+.print-split .menu { left: auto; right: 0; min-width: 210px; }
 
 /* Main */
 .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 0; }
@@ -289,6 +305,9 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .switch input:checked + i::after { transform: translateX(16px); }
 .switch input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pp-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.pdf-which { display: flex; margin-bottom: 12px; }
+.pdf-which button { flex: 1; }
+.pdf-which button:disabled { color: #C9C3BE; cursor: default; }
 .pp-actions .primary { height: 36px; padding: 0 20px; }
 
 .toast {
@@ -315,9 +334,21 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">
-    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="6" width="19" height="22" rx="3" transform="rotate(-10 12 17)" fill="#F2545B"/><rect x="11" y="4" width="18" height="21" rx="3" transform="rotate(7 20 14)" fill="#fff" stroke="#1E1B1A" stroke-width="2.4"/></svg>
-    Scrapbook
+  <div class="left-controls">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="6" width="19" height="22" rx="3" transform="rotate(-10 12 17)" fill="#F2545B"/><rect x="11" y="4" width="18" height="21" rx="3" transform="rotate(7 20 14)" fill="#fff" stroke="#1E1B1A" stroke-width="2.4"/></svg>
+      <span class="wordmark">Scrapbook</span>
+    </div>
+    <div class="file-wrap">
+      <button class="btn file" id="file-btn" aria-haspopup="menu" aria-expanded="false">File<svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="menu" id="file-menu" role="menu" hidden>
+        <button role="menuitem" data-file="save">Save scrapbook file</button>
+        <button role="menuitem" data-file="open">Open scrapbook file</button>
+        <hr>
+        <button role="menuitem" data-file="new">Start over</button>
+      </div>
+    </div>
+    <span class="save-state" id="save-state" role="status"></span>
   </div>
   <div class="center-controls">
     <div class="seg" id="size-seg" role="group" aria-label="Sheet size">
@@ -348,7 +379,13 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
       <button class="icon-btn" id="zoom-in" title="Zoom in" aria-label="Zoom in"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
       <button class="fit" id="zoom-fit">Fit</button>
     </div>
-    <button class="primary" id="print-btn"><svg class="i" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>Print</button>
+    <div class="split print-split">
+      <button class="primary" id="print-btn"><svg class="i" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>Print</button><button class="primary print-more" id="print-more" title="Print options" aria-label="Print options" aria-haspopup="menu" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="menu" id="print-menu" role="menu" hidden>
+        <button role="menuitem" data-out="print" id="print-menu-sheet">Print Sheet 1</button>
+        <button role="menuitem" data-out="pdf">Save PDF <small id="pdf-menu-n"></small></button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -416,9 +453,23 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
     <button class="primary" id="pp-print">Print</button>
   </div>
 </div>
+<div class="popover" id="pdf-panel" role="dialog" aria-label="Save PDF" hidden>
+  <h3>Save PDF</h3>
+  <div class="seg pdf-which" id="pdf-which" role="group" aria-label="Sheets">
+    <button data-which="sheet">This sheet</button>
+    <button data-which="all" id="pdf-all">All sheets</button>
+  </div>
+  <dl class="facts" id="pdf-facts"></dl>
+  <label class="switch-row">Cut marks <span class="switch"><input type="checkbox" id="pdf-cut" checked><i></i></span></label>
+  <div class="pp-actions">
+    <button class="btn" id="pdf-cancel">Cancel</button>
+    <button class="primary" id="pdf-save">Save PDF</button>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" hidden></div>
-<div class="drop-overlay" id="drop-overlay" hidden><div>Drop photos or a Google Photos zip</div></div>
-<input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif,.zip,application/zip" hidden>
+<div class="drop-overlay" id="drop-overlay" hidden><div>Drop photos, a Google Photos zip or a scrapbook file</div></div>
+<input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif,.zip,application/zip,.scrapbook" hidden>
+<input type="file" id="open-input" accept=".scrapbook,.zip,application/zip" hidden>
 <div id="print-root"></div>
 
 <script>
@@ -444,6 +495,7 @@ const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'i
 const LIBS = {
   jszip: { src: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', integrity: 'sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG' },
   heic2any: { src: 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js', integrity: 'sha384-OTofQ0MEeiSgh62havBcemCIK0gqj809wX6UA0uPISNMRnR6NZyCdGzX3SbLrgwL' },
+  pdflib: { src: 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js', integrity: 'sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI' },
 };
 const ICON = {
   swap: '<svg class="i" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="1.5"/><rect x="3" y="7" width="18" height="10" rx="1.5" stroke-dasharray="2.2 2.4"/></svg>',
@@ -465,7 +517,7 @@ const f8 = v => Math.floor(v * 8 + 1e-9) / 8;
 const near = (a, b, t = 1e-6) => Math.abs(a - b) <= t;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let idSeq = 0;
-const uid = p => p + (++idSeq).toString(36) + Math.random().toString(36).slice(2, 6);
+const uid = p => p + (++idSeq).toString(36) + Math.random().toString(36).slice(2, 10);   // saved ids outlive idSeq
 function fmt(v) {
   if (near(v * 8, Math.round(v * 8), 1e-6)) return String(Math.round(v * 8) / 8);
   return String(Math.round(v * 100) / 100);
@@ -473,7 +525,9 @@ function fmt(v) {
 const fmtSize = (w, h) => `${fmt(w)} × ${fmt(h)} in`;
 
 /* ---------- State ---------- */
-const photos = new Map();   // id -> { id, name, w, h, thumb, preview, full }
+// id -> { id, name, w, h, thumb, preview, full, blob, thumbBlob, previewBlob, stored }. blob is the original file
+// (HEIC already turned into JPEG); thumb, preview and full are object URLs. stored: saved on this computer.
+const photos = new Map();
 const makeSheet = (size, orient) => ({ id: uid('s'), size, orient, items: [] });
 // hidden: photos cleared from the tray. They stay loaded, so sheets keep them and undo can bring them back.
 let doc = { sheets: [makeSheet('13x19', 'portrait')], current: 0, hidden: [] };
@@ -590,7 +644,7 @@ function snapSide(v, other, avail, W, H) {
 const desk = $('desk'), stage = $('stage'), wrap = $('sheet-wrap'), sheetEl = $('sheet'), safeEl = $('safe'), itemsEl = $('items');
 const guidesEl = $('guides'), ghostEl = $('crop-ghost'), selbox = $('selbox'), liveEl = $('live'), toolbar = $('toolbar');
 const tabsEl = $('tabs'), grid = $('grid'), fileInput = $('file-input'), printRoot = $('print-root'), pageStyle = $('page-size');
-const panel = $('print-panel'), toastEl = $('toast'), center = $('center');
+const panel = $('print-panel'), pdfPanel = $('pdf-panel'), toastEl = $('toast'), center = $('center');
 const itemEls = new Map();
 
 /* ---------- Render ---------- */
@@ -625,6 +679,7 @@ function render() {
   renderTop(s);
   renderTabs();
   renderTray();
+  saveSoon();
 }
 
 function renderItems(s, u) {
@@ -757,9 +812,18 @@ function renderTop(s) {
   $('organize-btn').disabled = !s.items.length;
   const many = doc.sheets.length > 1 && doc.sheets.some(x => x.items.length);
   $('organize-more').disabled = !many;
-  if (!many) closeOrganizeMenu();
+  if (!many) closeMenu('organize');
   $('organize-menu').querySelector('[data-org="sheet"]').disabled = !s.items.length;
   $('organize-all-n').textContent = doc.sheets.length;
+  const filled = doc.sheets.filter(x => x.items.length).length;
+  $('print-more').disabled = !filled;
+  if (!filled) closeMenu('print');
+  $('print-menu-sheet').textContent = `Print Sheet ${doc.current + 1}`;
+  $('print-menu-sheet').disabled = !s.items.length;
+  $('pdf-menu-n').textContent = `${filled} sheet${filled === 1 ? '' : 's'}`;
+  const empty = !trayIds().length && !filled;
+  $('file-menu').querySelector('[data-file="save"]').disabled = empty;
+  $('file-menu').querySelector('[data-file="new"]').disabled = empty && doc.sheets.length === 1;
 }
 
 let tabsKey = '';
@@ -963,6 +1027,23 @@ function clearFromTray(ids) {
 }
 function clearUsed() { const counts = useCounts(); clearFromTray(trayIds().filter(id => counts.get(id))); }
 function clearAll() { clearFromTray(trayIds()); }
+// A blank sheet and an empty tray. The photos stay loaded (hidden), so undo brings everything back.
+function startOver() {
+  if (ui.crop) endCrop();
+  change(() => {
+    doc = { sheets: [makeSheet('13x19', 'portrait')], current: 0, hidden: [...photos.keys()] };
+    ui.sel = null; ui.zoom = 'fit';
+  });
+  toast('Started over', { label: 'Undo', fn: undo });
+}
+// Hides photos in the current layout and every undo step, for photos arriving with an opened scrapbook file:
+// undoing the open then shows the tray as it was.
+function hideEverywhere(ids) {
+  const add = d => { d.hidden = [...new Set([...(d.hidden || []), ...ids])]; return d; };
+  add(doc);
+  past = past.map(s => JSON.stringify(add(JSON.parse(s))));
+  future = future.map(s => JSON.stringify(add(JSON.parse(s))));
+}
 function enterCrop(id) {
   if (ui.crop === id) return;
   if (ui.crop) endCrop();
@@ -1515,7 +1596,7 @@ function loadImg(url) {
     i.src = url;
   });
 }
-function scaledUrl(img, max, q) {
+function scaledBlob(img, max, q) {
   const w = img.naturalWidth, h = img.naturalHeight, k = Math.min(1, max / Math.max(w, h));
   const c = document.createElement('canvas');
   c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
@@ -1524,20 +1605,42 @@ function scaledUrl(img, max, q) {
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, 0, 0, c.width, c.height);
   return new Promise((res, rej) => {
-    try { c.toBlob(b => (b ? res(URL.createObjectURL(b)) : rej(new Error('toBlob failed'))), 'image/jpeg', q); }
+    try { c.toBlob(b => (b ? res(b) : rej(new Error('toBlob failed'))), 'image/jpeg', q); }
     catch (err) { rej(err); }   // tainted canvas (sample opened from a local file)
   });
 }
+// Adds a photo record to the map with object URLs for its images, and saves it on this computer unless it came from
+// there. added keeps the tray order through a refresh.
+function addPhoto(rec, fullUrl, stored = false) {
+  const full = fullUrl || (rec.blob ? URL.createObjectURL(rec.blob) : '');
+  const p = { ...rec, full, stored, added: rec.added || Date.now() * 1000 + (store.added++ % 1000),
+    thumb: rec.thumbBlob ? URL.createObjectURL(rec.thumbBlob) : full,
+    preview: rec.previewBlob ? URL.createObjectURL(rec.previewBlob) : full };
+  photos.set(p.id, p);
+  if (!stored) storePhoto(p);
+  return p;
+}
+// A photo from a file, a zip, Google Photos or a scrapbook file: ~400px tray thumbnail, ~2000px on-screen preview,
+// the original for printing. Returns the photo id.
+async function ingestBlob(blob, name, id = uid('p')) {
+  const url = URL.createObjectURL(blob);
+  let img;
+  try { img = await loadImg(url); } catch (err) { URL.revokeObjectURL(url); throw err; }
+  const w = img.naturalWidth, h = img.naturalHeight;
+  let thumbBlob = null, previewBlob = null;
+  try {
+    thumbBlob = await scaledBlob(img, 400, 0.82);
+    if (Math.max(w, h) > 2000) previewBlob = await scaledBlob(img, 2000, 0.9);
+  } catch (err) { thumbBlob = previewBlob = null; }
+  addPhoto({ id, name, w, h, blob, thumbBlob, previewBlob }, url);
+  renderTray();
+  return id;
+}
+// A sample served from a local file (no blob to keep): shown, never saved.
 async function ingestUrl(url, name) {
   const img = await loadImg(url);
-  const w = img.naturalWidth, h = img.naturalHeight;
-  let thumb = url, preview = url;
-  try {
-    thumb = await scaledUrl(img, 400, 0.82);
-    if (Math.max(w, h) > 2000) preview = await scaledUrl(img, 2000, 0.9);
-  } catch (err) { thumb = url; preview = url; }
   const id = uid('p');
-  photos.set(id, { id, name, w, h, thumb, preview, full: url });
+  photos.set(id, { id, name, w: img.naturalWidth, h: img.naturalHeight, thumb: url, preview: url, full: url, blob: null, stored: false });
   renderTray();
 }
 async function toDisplayable(blob, name) {
@@ -1558,19 +1661,22 @@ function stepProgress() {
 }
 function hideProgress() { $('progress').hidden = true; $('progress-bar').style.width = '0'; }
 let busy = false;
+const isScrapbook = f => /\.scrapbook$/i.test(f.name);
 async function addFiles(fileList) {
   const files = [...fileList];
   if (!files.length || busy) return;
   busy = true;
-  let skipped = 0, failed = 0;
+  let skipped = 0, failed = 0, project = null;
   const jobs = [];
   try {
     for (const f of files) {
-      if (isZip(f)) {
+      if (isZip(f) || isScrapbook(f)) {
         showProgress('Opening zip…');
         try {
           await loadLib('jszip');
           const zip = await window.JSZip.loadAsync(f);
+          if (zip.file(PROJECT_JSON)) { if (!project) project = { zip, name: f.name }; else skipped++; continue; }
+          if (isScrapbook(f)) throw new Error('Not a scrapbook file');
           const entries = [];
           zip.forEach((path, entry) => {
             const base = path.split('/').pop();
@@ -1584,12 +1690,14 @@ async function addFiles(fileList) {
         jobs.push({ name: f.name, get: async () => f });
       } else skipped++;
     }
+    // A scrapbook file opens first, so photos dropped with it land in its tray.
+    if (project) await openProject(project.zip, project.name);
     progress.total = jobs.length; progress.done = 0;
     if (jobs.length) showProgress(`Adding ${jobs.length} photo${jobs.length === 1 ? '' : 's'}…`);
     for (const j of jobs) {
       try {
         const blob = await toDisplayable(await j.get(), j.name);
-        await ingestUrl(URL.createObjectURL(blob), j.name);
+        await ingestBlob(blob, j.name);
       } catch (err) { failed++; }
       stepProgress();
     }
@@ -1615,7 +1723,7 @@ async function loadSamples() {
       try {
         const r = await fetch(url);
         if (!r.ok) throw new Error(r.status);
-        await ingestUrl(URL.createObjectURL(await r.blob()), n);
+        await ingestBlob(await r.blob(), n);
       } catch (err) {
         try { await ingestUrl(new URL(url, location.href).href, n); } catch (e2) { failed++; }
       }
@@ -1885,7 +1993,7 @@ async function gpImport(items) {
       const name = items[i].mediaFile.filename || `Google photo ${i + 1}`;
       try {
         const blob = await toDisplayable(await downloads[i], '');
-        await ingestUrl(URL.createObjectURL(blob), name);
+        await ingestBlob(blob, name);
       } catch (err) {
         if (err && err.gpBlocked) blocked = true;
         else { failed++; console.error(`Google Photos: couldn’t add ${name}`, err); }
@@ -1908,19 +2016,38 @@ gpInit();
 $('size-seg').addEventListener('click', e => { const b = e.target.closest('[data-size]'); if (b) setSheetSize(b.dataset.size); });
 $('orient-seg').addEventListener('click', e => { const b = e.target.closest('[data-orient]'); if (b) setOrient(b.dataset.orient); });
 $('organize-btn').addEventListener('click', autoOrganize);
-function closeOrganizeMenu() { $('organize-menu').hidden = true; $('organize-more').setAttribute('aria-expanded', 'false'); }
-$('organize-more').addEventListener('click', () => {
-  const m = $('organize-menu');
-  if (!m.hidden) { closeOrganizeMenu(); return; }
-  m.hidden = false;
-  $('organize-more').setAttribute('aria-expanded', 'true');
-  const first = m.querySelector('button:not(:disabled)'); if (first) first.focus();
-});
+// Drop-down menus: the button that opens each one, and the menu.
+const MENUS = { organize: ['organize-more', 'organize-menu'], print: ['print-more', 'print-menu'], file: ['file-btn', 'file-menu'] };
+function closeMenu(name) { const [b, m] = MENUS[name]; $(m).hidden = true; $(b).setAttribute('aria-expanded', 'false'); }
+const openMenuName = () => Object.keys(MENUS).find(n => !$(MENUS[n][1]).hidden);
+function toggleMenu(name) {
+  const [b, m] = MENUS[name];
+  if (!$(m).hidden) { closeMenu(name); return; }
+  Object.keys(MENUS).forEach(closeMenu);
+  closePanels();
+  $(m).hidden = false;
+  $(b).setAttribute('aria-expanded', 'true');
+  const first = $(m).querySelector('button:not(:disabled)'); if (first) first.focus();
+}
+for (const name of Object.keys(MENUS)) $(MENUS[name][0]).addEventListener('click', () => toggleMenu(name));
 $('organize-menu').addEventListener('click', e => {
   const b = e.target.closest('[data-org]'); if (!b || b.disabled) return;
-  closeOrganizeMenu();
+  closeMenu('organize');
   if (b.dataset.org === 'all') autoOrganizeAll(); else autoOrganize();
 });
+$('print-menu').addEventListener('click', e => {
+  const b = e.target.closest('[data-out]'); if (!b || b.disabled) return;
+  closeMenu('print');
+  if (b.dataset.out === 'pdf') openPdfPanel(); else openPrintPanel();
+});
+$('file-menu').addEventListener('click', e => {
+  const b = e.target.closest('[data-file]'); if (!b || b.disabled) return;
+  closeMenu('file');
+  if (b.dataset.file === 'save') saveScrapbookFile();
+  else if (b.dataset.file === 'open') { if (!busy) $('open-input').click(); }
+  else startOver();
+});
+$('open-input').addEventListener('change', () => { const f = $('open-input').files[0]; $('open-input').value = ''; if (f) openScrapbookFile(f); });
 $('undo').addEventListener('click', undo);
 $('redo').addEventListener('click', redo);
 $('zoom-in').addEventListener('click', () => zoomStep(1));
@@ -1936,12 +2063,13 @@ tabsEl.addEventListener('click', e => {
 
 /* ---------- Toast ---------- */
 let toastTimer = 0;
-function toast(msg, action) {
+// stay: keep showing until the next message (work in progress).
+function toast(msg, action, stay = false) {
   toastEl.innerHTML = `<span>${esc(msg)}</span>` + (action ? `<button>${esc(action.label)}</button>` : '');
   toastEl.hidden = false;
   if (action) toastEl.querySelector('button').onclick = () => { toastEl.hidden = true; action.fn(); };
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toastEl.hidden = true; }, 6000);
+  if (!stay) toastTimer = setTimeout(() => { toastEl.hidden = true; }, 6000);
 }
 
 /* ---------- Print ---------- */
@@ -1953,6 +2081,8 @@ function openPrintPanel() {
   const s = cur();
   if (!s.items.length) return;
   if (ui.crop) { endCrop(); render(); }
+  Object.keys(MENUS).forEach(closeMenu);
+  pdfPanel.hidden = true;
   const { W, H } = dims(s);
   $('pp-title').textContent = `Print Sheet ${doc.current + 1}`;
   const rows = [['Paper size', esc(SIZES[s.size].paper)]];
@@ -1969,17 +2099,23 @@ function openPrintPanel() {
   pb.focus();
 }
 function closePanel() { panel.hidden = true; }
-function cutMarksSvg(s, W, H) {
-  const gap = 1 / 16, len = 3 / 16;
-  let d = '';
+function closePanels() { panel.hidden = true; pdfPanel.hidden = true; }
+// Cut marks: a short line off each corner of each photo, along both edges, 1/16 in clear of it. [x1, y1, x2, y2] in inches.
+const CUT = { gap: 1 / 16, len: 3 / 16, color: '#A8A8A8', width: 0.007 };
+function cutSegments(s) {
+  const { gap, len } = CUT, out = [];
   for (const it of s.items) {
     const L = it.x, R = it.x + it.w, T = it.y, B = it.y + it.h;
-    d += `M${L - gap - len} ${T}H${L - gap}M${L} ${T - gap - len}V${T - gap}`;
-    d += `M${R + gap} ${T}H${R + gap + len}M${R} ${T - gap - len}V${T - gap}`;
-    d += `M${L - gap - len} ${B}H${L - gap}M${L} ${B + gap}V${B + gap + len}`;
-    d += `M${R + gap} ${B}H${R + gap + len}M${R} ${B + gap}V${B + gap + len}`;
+    out.push([L - gap - len, T, L - gap, T], [L, T - gap - len, L, T - gap]);
+    out.push([R + gap, T, R + gap + len, T], [R, T - gap - len, R, T - gap]);
+    out.push([L - gap - len, B, L - gap, B], [L, B + gap, L, B + gap + len]);
+    out.push([R + gap, B, R + gap + len, B], [R, B + gap, R, B + gap + len]);
   }
-  return `<svg class="p-marks" xmlns="http://www.w3.org/2000/svg" width="${W}in" height="${H}in" viewBox="0 0 ${W} ${H}"><path d="${d}" fill="none" stroke="#A8A8A8" stroke-width="0.007"/></svg>`;
+  return out;
+}
+function cutMarksSvg(s, W, H) {
+  const d = cutSegments(s).map(([x1, y1, x2, y2]) => `M${x1} ${y1}L${x2} ${y2}`).join('');
+  return `<svg class="p-marks" xmlns="http://www.w3.org/2000/svg" width="${W}in" height="${H}in" viewBox="0 0 ${W} ${H}"><path d="${d}" fill="none" stroke="${CUT.color}" stroke-width="${CUT.width}"/></svg>`;
 }
 function buildPrint(s, full = true) {
   const { W, H } = dims(s);
@@ -2013,15 +2149,420 @@ async function doPrint() {
 $('print-btn').addEventListener('click', () => { if (panel.hidden) openPrintPanel(); else closePanel(); });
 $('pp-cancel').addEventListener('click', closePanel);
 $('pp-print').addEventListener('click', doPrint);
-$('cut-toggle').addEventListener('change', e => { ui.cutMarks = e.target.checked; });
+$('cut-toggle').addEventListener('change', e => { ui.cutMarks = e.target.checked; saveSoon(); });
 // Printing from the browser menu instead of the Print button: rebuild if the sheet changed since the last print,
 // using the on-screen images, which are already decoded.
 window.addEventListener('beforeprint', () => { if (printRoot.dataset.key !== printKey(cur())) buildPrint(cur(), false); });
 
+/* ---------- Save PDF ---------- */
+// One PDF built in the page with pdf-lib: a page per sheet at its exact paper size (72 pt to the inch), each photo the
+// original file clipped to its frame, placed by the same geometry as the screen and the print. Blank sheets are left out.
+const PT = 72;
+const filledSheets = () => doc.sheets.filter(s => s.items.length);
+let pdfWhich = 'all', pdfBusy = false;
+function pdfSheets() {
+  const f = filledSheets();
+  return f.length > 1 && pdfWhich === 'sheet' && cur().items.length ? [cur()] : f;
+}
+function openPdfPanel() {
+  const f = filledSheets();
+  if (!f.length) return;
+  if (ui.crop) { endCrop(); render(); }
+  Object.keys(MENUS).forEach(closeMenu);
+  panel.hidden = true;
+  if (!cur().items.length) pdfWhich = 'all';
+  $('pdf-which').hidden = f.length < 2;
+  $('pdf-all').textContent = `All ${f.length} sheets`;
+  $('pdf-which').querySelector('[data-which="sheet"]').disabled = !cur().items.length;
+  $('pdf-cut').checked = ui.cutMarks;
+  renderPdfPanel();
+  const b = $('pdf-save'); b.disabled = pdfBusy; b.textContent = pdfBusy ? 'Making PDF…' : 'Save PDF';
+  pdfPanel.hidden = false;
+  b.focus();
+}
+function renderPdfPanel() {
+  document.querySelectorAll('#pdf-which button').forEach(b => b.setAttribute('aria-pressed', b.dataset.which === pdfWhich));
+  const n = new Map();
+  for (const s of pdfSheets()) n.set(s.size, (n.get(s.size) || 0) + 1);
+  const paper = [...n].map(([size, k]) => SIZES[size].label + (n.size > 1 ? ` (${k})` : '')).join(', ');
+  $('pdf-facts').innerHTML = `<div><dt>Paper</dt><dd>${esc(paper)}</dd></div>`;
+}
+const today = () => { const d = new Date(), z = v => String(v).padStart(2, '0'); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`; };
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+async function savePdf() {
+  const sheets = JSON.parse(JSON.stringify(pdfSheets()));   // as they are now, whatever changes while it builds
+  if (!sheets.length || pdfBusy) return;
+  const n = sheets.length, cut = ui.cutMarks = $('pdf-cut').checked;
+  const name = `Scrapbook ${today()}` + (n === 1 && filledSheets().length > 1 ? ` Sheet ${doc.current + 1}` : '') + '.pdf';
+  pdfBusy = true;
+  closePanels();
+  saveSoon();
+  toast('Making PDF…', null, true);
+  try {
+    const bytes = await buildPdf(sheets, cut, i => { if (n > 1) toast(`Making PDF… ${i + 1} of ${n} sheets`, null, true); });
+    download(new Blob([bytes], { type: 'application/pdf' }), name);
+    toast('PDF saved');
+  } catch (err) {
+    console.error('Save PDF:', err);
+    toast('Couldn’t make the PDF');
+  } finally { pdfBusy = false; }
+}
+// EXIF orientation of a JPEG (1 = as stored). Browsers show photos turned by it, and pdf-lib embeds the raw pixels,
+// so the PDF has to turn them the same way.
+function exifOrientation(buf) {
+  const v = new DataView(buf), n = v.byteLength;
+  if (n < 4 || v.getUint16(0) !== 0xFFD8) return 1;
+  for (let o = 2; o + 4 <= n;) {
+    const m = v.getUint16(o), len = v.getUint16(o + 2);
+    if ((m & 0xFF00) !== 0xFF00 || m === 0xFFDA) return 1;   // not a marker, or the image data has started
+    if (m === 0xFFE1 && o + 18 <= n && v.getUint32(o + 4) === 0x45786966) {   // APP1 "Exif"
+      const t = o + 10, le = v.getUint16(t) === 0x4949, ifd = t + v.getUint32(t + 4, le);
+      if (ifd + 2 > n) return 1;
+      for (let i = 0, k = v.getUint16(ifd, le); i < k && ifd + 14 + i * 12 <= n; i++) {
+        const e = ifd + 2 + i * 12;
+        if (v.getUint16(e, le) === 0x0112) { const val = v.getUint16(e + 8, le); return val >= 1 && val <= 8 ? val : 1; }
+      }
+      return 1;
+    }
+    o += 2 + len;
+  }
+  return 1;
+}
+// The image's unit square onto a dw x dh box centred on the origin (PDF space, y up), turned per EXIF orientation.
+const ORIENT = {
+  1: (w, h) => [w, 0, 0, h, -w / 2, -h / 2],
+  2: (w, h) => [-w, 0, 0, h, w / 2, -h / 2],
+  3: (w, h) => [-w, 0, 0, -h, w / 2, h / 2],
+  4: (w, h) => [w, 0, 0, -h, -w / 2, h / 2],
+  5: (w, h) => [0, -h, -w, 0, w / 2, h / 2],
+  6: (w, h) => [0, -h, w, 0, -w / 2, h / 2],
+  7: (w, h) => [0, h, w, 0, -w / 2, -h / 2],
+  8: (w, h) => [0, h, -w, 0, w / 2, -h / 2],
+};
+const TURN = { 0: [1, 0], 90: [0, -1], 180: [-1, 0], 270: [0, 1] };   // [cos, sin] of a clockwise quarter turn, y up
+// Each photo embedded once per PDF: a JPEG or PNG as its own bytes, anything else as a full-size JPEG from a canvas.
+async function pdfImage(L, pdf, p, cache) {
+  if (cache.has(p.id)) return cache.get(p.id);
+  let out = null;
+  if (p.blob) {
+    const buf = await p.blob.arrayBuffer(), b = new Uint8Array(buf, 0, Math.min(4, buf.byteLength));
+    try {
+      if (b[0] === 0xFF && b[1] === 0xD8) out = { img: await pdf.embedJpg(buf), o: exifOrientation(buf) };
+      else if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) out = { img: await pdf.embedPng(buf), o: 1 };
+    } catch (err) { console.warn(`Save PDF: ${p.name} re-encoded`, err); out = null; }
+  }
+  if (!out) {
+    const img = await loadImg(p.full);
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0);
+    const jpg = await new Promise((res, rej) => c.toBlob(x => (x ? res(x) : rej(new Error('toBlob failed'))), 'image/jpeg', 0.95));
+    out = { img: await pdf.embedJpg(await jpg.arrayBuffer()), o: 1 };
+  }
+  cache.set(p.id, out);
+  return out;
+}
+async function buildPdf(sheets, cut, onSheet) {
+  await loadLib('pdflib');
+  const L = window.PDFLib;
+  const pdf = await L.PDFDocument.create();
+  pdf.setTitle('Scrapbook'); pdf.setCreator('Scrapbook'); pdf.setProducer('Scrapbook');
+  const cache = new Map();
+  for (let si = 0; si < sheets.length; si++) {
+    onSheet(si);
+    const s = sheets[si], { W, H } = dims(s);
+    const page = pdf.addPage([W * PT, H * PT]);
+    if (cut) {
+      const c = parseInt(CUT.color.slice(1), 16), ops = [L.pushGraphicsState(), L.setLineWidth(CUT.width * PT),
+        L.setStrokingRgbColor((c >> 16) / 255, (c >> 8 & 255) / 255, (c & 255) / 255)];
+      for (const [x1, y1, x2, y2] of cutSegments(s)) ops.push(L.moveTo(x1 * PT, (H - y1) * PT), L.lineTo(x2 * PT, (H - y2) * PT));
+      page.pushOperators(...ops, L.stroke(), L.popGraphicsState());
+    }
+    for (const it of s.items) {
+      const p = photos.get(it.src); if (!p) continue;
+      const im = await pdfImage(L, pdf, p, cache), g = geo(it, p), [cos, sin] = TURN[it.rot] || TURN[0];
+      page.pushOperators(
+        L.pushGraphicsState(),
+        L.rectangle(it.x * PT, (H - it.y - it.h) * PT, it.w * PT, it.h * PT), L.clip(), L.endPath(),
+        L.concatTransformationMatrix(1, 0, 0, 1, (it.x + g.cx) * PT, (H - it.y - g.cy) * PT),
+        L.concatTransformationMatrix(cos, sin, -sin, cos, 0, 0),
+        L.concatTransformationMatrix(...ORIENT[im.o](g.dw * PT, g.dh * PT)),
+      );
+      page.drawImage(im.img, { x: 0, y: 0, width: 1, height: 1 });
+      page.pushOperators(L.popGraphicsState());
+    }
+  }
+  return pdf.save();
+}
+$('pdf-which').addEventListener('click', e => {
+  const b = e.target.closest('[data-which]'); if (!b || b.disabled) return;
+  pdfWhich = b.dataset.which;
+  renderPdfPanel();
+});
+$('pdf-cancel').addEventListener('click', closePanels);
+$('pdf-save').addEventListener('click', savePdf);
+$('pdf-cut').addEventListener('change', e => { ui.cutMarks = e.target.checked; saveSoon(); });
+
+/* ---------- Saving on this computer ---------- */
+// Everything saves in this browser's IndexedDB: each photo once (original, thumbnail, preview) as it comes in, the
+// layout 0.4 s after a change. One tab saves at a time (Web Locks); another tab shows "In another tab" until Use here.
+// Every stevehines111.github.io page shares one origin, hence the database's own name.
+const DB_NAME = 'scrapbook';
+const store = { db: null, owner: false, booted: false, saved: null, loaded: '', timer: 0, writes: 0, since: 0, slowT: 0, error: '', added: 0, shown: '' };
+function dbOpen() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('photos', { keyPath: 'id' }); r.result.createObjectStore('meta'); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.onblocked = () => rej(new Error('IndexedDB blocked'));
+  });
+}
+// One transaction; resolves with the result of the request fn returns, once it has committed.
+function dbTx(names, mode, fn) {
+  return new Promise((res, rej) => {
+    const tx = store.db.transaction(names, mode);
+    const req = fn(tx);
+    tx.oncomplete = () => res(req && 'result' in req ? req.result : undefined);
+    tx.onerror = () => rej(tx.error);
+    tx.onabort = () => rej(tx.error || new Error('IndexedDB transaction aborted'));
+  });
+}
+const canSave = () => !!store.db && store.owner;
+function track(promise) {
+  if (!store.writes++) store.since = performance.now();
+  clearTimeout(store.slowT);
+  store.slowT = setTimeout(saveStatus, 300);
+  return promise.then(() => { store.error = ''; }, err => {
+    store.error = err && err.name === 'QuotaExceededError' ? 'storage full' : 'error';
+    console.error('Saving on this computer failed:', err);
+    throw err;
+  }).finally(() => { store.writes--; saveStatus(); });
+}
+function storePhoto(p) {
+  if (!canSave() || !p.blob || p.stored || p.saving) return;
+  p.saving = true;
+  const rec = { id: p.id, name: p.name, w: p.w, h: p.h, added: p.added, blob: p.blob, thumbBlob: p.thumbBlob || null, previewBlob: p.previewBlob || null };
+  track(dbTx(['photos'], 'readwrite', tx => tx.objectStore('photos').put(rec)))
+    .then(() => { p.stored = true; }, () => {}).finally(() => { p.saving = false; });
+}
+const saveKey = () => snap() + '|' + ui.cutMarks;
+function saveSoon() {
+  if (!canSave()) return;
+  clearTimeout(store.timer);
+  store.timer = setTimeout(saveNow, 400);
+}
+function saveNow() {
+  clearTimeout(store.timer); store.timer = 0;
+  if (!canSave()) return;
+  for (const p of photos.values()) storePhoto(p);   // any that failed before
+  const key = saveKey();
+  if (key === store.saved) return;
+  store.saved = key;
+  const state = { doc: JSON.parse(snap()), cutMarks: ui.cutMarks, at: Date.now() };
+  track(dbTx(['meta'], 'readwrite', tx => tx.objectStore('meta').put(state, 'state'))).catch(() => { store.saved = null; });
+}
+// A layout from storage or a scrapbook file, keeping only what is well formed and photos that are here.
+function cleanDoc(d, have) {
+  const num = (v, dflt) => (Number.isFinite(+v) ? +v : dflt);
+  const sheets = (d && Array.isArray(d.sheets) ? d.sheets : [])
+    .filter(s => s && Object.prototype.hasOwnProperty.call(SIZES, s.size) && (s.orient === 'portrait' || s.orient === 'landscape'))
+    .map(s => ({
+      id: typeof s.id === 'string' ? s.id : uid('s'), size: s.size, orient: s.orient,
+      items: (Array.isArray(s.items) ? s.items : []).filter(it => it && have.has(it.src) && [it.x, it.y, it.w, it.h].every(v => Number.isFinite(+v)))
+        .map(it => ({
+          id: typeof it.id === 'string' ? it.id : uid('i'), src: it.src, x: +it.x, y: +it.y, w: Math.max(0.01, +it.w), h: Math.max(0.01, +it.h),
+          rot: [0, 90, 180, 270].includes(it.rot) ? it.rot : 0,
+          crop: { z: clamp(num(it.crop && it.crop.z, 1), 1, 5), x: clamp(num(it.crop && it.crop.x, 0), -1, 1), y: clamp(num(it.crop && it.crop.y, 0), -1, 1) },
+        })),
+    }));
+  if (!sheets.length) sheets.push(makeSheet('13x19', 'portrait'));
+  return {
+    sheets,
+    current: clamp(Math.floor(num(d && d.current, 0)), 0, sheets.length - 1),
+    hidden: [...new Set((d && Array.isArray(d.hidden) ? d.hidden : []).filter(id => have.has(id)))],
+  };
+}
+// Opens what was saved. Photos cleared from the tray and on no sheet are deleted here: undo does not outlive a refresh.
+async function loadSaved() {
+  const [state, recs] = await Promise.all([
+    dbTx(['meta'], 'readonly', tx => tx.objectStore('meta').get('state')),
+    dbTx(['photos'], 'readonly', tx => tx.objectStore('photos').getAll()),
+  ]);
+  if (state && typeof state.cutMarks === 'boolean') ui.cutMarks = state.cutMarks;
+  if (!recs.length && !state) { store.loaded = snap(); return; }
+  const d = cleanDoc(state && state.doc, new Set(recs.map(r => r.id)));
+  const used = new Set(d.sheets.flatMap(s => s.items.map(it => it.src)));
+  const hidden = new Set(d.hidden);
+  const gone = recs.filter(r => hidden.has(r.id) && !used.has(r.id)).map(r => r.id);
+  recs.sort((a, b) => (a.added || 0) - (b.added || 0));
+  for (const r of recs) if (!gone.includes(r.id)) addPhoto(r, '', true);
+  d.hidden = d.hidden.filter(id => photos.has(id));
+  doc = d; past = []; future = []; ui.sel = null;
+  store.loaded = snap();
+  store.saved = gone.length ? null : saveKey();
+  if (gone.length && canSave()) track(dbTx(['photos'], 'readwrite', tx => { for (const id of gone) tx.objectStore('photos').delete(id); })).catch(() => {});
+}
+function claimSaving(steal) {
+  if (!navigator.locks) return Promise.resolve(true);
+  return new Promise(resolve => {
+    navigator.locks.request('scrapbook-saving', steal ? { steal: true } : { ifAvailable: true }, lock => {
+      resolve(!!lock);
+      return lock ? new Promise(() => {}) : undefined;   // held until this tab closes or another tab takes over
+    }).catch(() => { store.owner = false; clearTimeout(store.timer); saveStatus(); });   // another tab pressed Use here
+  });
+}
+const editedHere = () => snap() !== store.loaded || [...photos.values()].some(p => p.blob && !p.stored);
+// Saving moves to this tab. Untouched here: reopen with the other tab's latest. Changed here: this tab's work is saved.
+async function useHere() {
+  if (!store.db || store.owner) return;
+  const edited = editedHere();
+  if (!(await claimSaving(true))) return;
+  if (!edited) { location.reload(); return; }
+  store.owner = true; store.saved = null;
+  saveNow();
+  saveStatus();
+}
+const SAVE_ICON = {
+  ok: '<svg class="i" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  bad: '<svg class="i" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  tab: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18"/></svg>',
+};
+function saveStatus() {
+  const el = $('save-state');
+  let html = '', cls = '', title = '';
+  if (!store.booted) html = '';
+  else if (!store.db) { html = SAVE_ICON.bad + 'Not saved'; cls = 'bad'; title = 'Saving is off in this browser'; }
+  else if (!store.owner) { html = SAVE_ICON.tab + 'In another tab<button class="use" id="use-here">Use here</button>'; title = 'This page is open in another tab, which is saving'; }
+  else if (store.error) { html = SAVE_ICON.bad + (store.error === 'storage full' ? 'Not saved: storage full' : 'Not saved'); cls = 'bad'; }
+  else if (store.writes && performance.now() - store.since >= 250) html = 'Saving…';
+  else { html = SAVE_ICON.ok + 'Saved'; title = 'Saved in this browser on this computer'; }
+  const key = html + cls + title;
+  if (key === store.shown) return;
+  store.shown = key;
+  el.innerHTML = html; el.className = 'save-state ' + cls; el.title = title;
+}
+$('save-state').addEventListener('click', e => { if (e.target.closest('#use-here')) useHere(); });
+async function boot() {
+  busy = true;
+  try {
+    if (!window.indexedDB) throw new Error('No IndexedDB');
+    store.db = await dbOpen();
+    store.owner = await claimSaving(false);
+    await loadSaved();
+    if (store.owner && navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  } catch (err) {
+    console.error('Saving on this computer is off:', err);
+    store.db = null;
+  } finally {
+    busy = false;
+    store.booted = true;
+    render();
+    saveStatus();
+  }
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+window.addEventListener('pagehide', () => saveNow());
+
+/* ---------- Scrapbook file ---------- */
+// One file to carry the work to another computer: a zip (no compression; photos are compressed already) of
+// scrapbook.json (layout, photo list) and photos/ (the originals). Opening one replaces what is open, as one undo step.
+const PROJECT_JSON = 'scrapbook.json', PROJECT_VERSION = 1;
+const TYPE_EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic', 'image/heif': 'heif' };
+async function saveScrapbookFile() {
+  if (busy) return;
+  const used = useCounts(), gone = new Set(doc.hidden);
+  const keep = [...photos.values()].filter(p => p.blob && (!gone.has(p.id) || used.has(p.id)));
+  if (!keep.length) return;
+  busy = true;
+  toast('Saving scrapbook file…', null, true);
+  try {
+    await loadLib('jszip');
+    const zip = new window.JSZip();
+    const d = JSON.parse(snap());
+    d.hidden = d.hidden.filter(id => keep.some(p => p.id === id));
+    const list = keep.map((p, i) => {
+      const file = `photos/${String(i + 1).padStart(3, '0')}.${TYPE_EXT[p.blob.type] || extOf(p.name) || 'jpg'}`;
+      zip.file(file, p.blob);
+      return { id: p.id, name: p.name, file };
+    });
+    zip.file(PROJECT_JSON, JSON.stringify({ app: 'scrapbook', version: PROJECT_VERSION, saved: new Date().toISOString(), cutMarks: ui.cutMarks, doc: d, photos: list }));
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE', mimeType: 'application/octet-stream' });
+    download(blob, `Scrapbook ${today()}.scrapbook`);
+    toast('Scrapbook file saved');
+  } catch (err) {
+    console.error('Save scrapbook file:', err);
+    toast('Couldn’t save the scrapbook file');
+  } finally { busy = false; }
+}
+async function openScrapbookFile(file) {
+  if (busy) return;
+  busy = true;
+  try {
+    showProgress('Opening scrapbook file…');
+    await loadLib('jszip');
+    const zip = await window.JSZip.loadAsync(file);
+    if (!zip.file(PROJECT_JSON)) throw new Error('No ' + PROJECT_JSON);
+    await openProject(zip, file.name);
+  } catch (err) {
+    console.error('Open scrapbook file:', err);
+    toast('That isn’t a scrapbook file');
+  } finally { busy = false; hideProgress(); }
+}
+// The caller holds busy. Every id is new, so nothing in the file can collide with what is here.
+async function openProject(zip, fileName) {
+  let meta = null;
+  try { meta = JSON.parse(await zip.file(PROJECT_JSON).async('string')); } catch (err) { /* not JSON */ }
+  if (!meta || meta.app !== 'scrapbook' || !Array.isArray(meta.photos)) { toast('That isn’t a scrapbook file'); return false; }
+  if (+meta.version > PROJECT_VERSION) { toast('Made by a newer Scrapbook: refresh the page'); return false; }
+  if (ui.crop) endCrop();
+  const ids = new Map();   // id in the file -> new id
+  for (const ph of meta.photos) if (ph && typeof ph.file === 'string' && zip.file(ph.file) && !ids.has(ph.id)) ids.set(ph.id, uid('p'));
+  hideEverywhere([...ids.values()]);
+  progress.total = ids.size; progress.done = 0;
+  showProgress(`Opening ${ids.size} photo${ids.size === 1 ? '' : 's'}…`);
+  const ok = new Set();
+  let failed = 0;
+  for (const ph of meta.photos) {
+    const id = ids.get(ph && ph.id);
+    if (!id || ok.has(id)) continue;
+    try {
+      const raw = await zip.file(ph.file).async('blob');
+      const blob = await toDisplayable(new Blob([raw], { type: MIME[extOf(ph.file)] || '' }), ph.file);
+      await ingestBlob(blob, String(ph.name || ph.file.split('/').pop()), id);
+      ok.add(id);
+    } catch (err) { failed++; console.error(`Open scrapbook file: couldn’t read ${ph.file}`, err); }
+    stepProgress();
+  }
+  const d = meta.doc || {};
+  const next = cleanDoc({
+    sheets: (Array.isArray(d.sheets) ? d.sheets : []).map(s => s && ({ ...s, id: uid('s'),
+      items: (Array.isArray(s.items) ? s.items : []).map(it => it && ({ ...it, id: uid('i'), src: ids.get(it.src) })) })),
+    current: d.current,
+    hidden: (Array.isArray(d.hidden) ? d.hidden : []).map(id => ids.get(id)),
+  }, ok);
+  next.hidden = [...new Set([...next.hidden, ...[...photos.keys()].filter(id => !ok.has(id))])];
+  change(() => { doc = next; ui.sel = null; ui.zoom = 'fit'; });
+  if (typeof meta.cutMarks === 'boolean') ui.cutMarks = meta.cutMarks;
+  const title = fileName.replace(/\.(scrapbook|zip)$/i, '');
+  toast(`Opened ${title}` + (failed ? ` · ${failed} photo${failed === 1 ? '' : 's'} couldn’t be read` : ''), { label: 'Undo', fn: undo });
+  return true;
+}
+
 /* ---------- Global pointer, keyboard, leaving ---------- */
 document.addEventListener('pointerdown', e => {
   if (!panel.hidden && !panel.contains(e.target) && !e.target.closest('#print-btn')) closePanel();
-  if (!$('organize-menu').hidden && !e.target.closest('.split')) closeOrganizeMenu();
+  if (!pdfPanel.hidden && !pdfPanel.contains(e.target)) pdfPanel.hidden = true;
+  const m = openMenuName();
+  if (m && !$(MENUS[m][0]).parentElement.contains(e.target)) closeMenu(m);
   if (ui.crop && !stage.contains(e.target) && !toolbar.contains(e.target)) { endCrop(); render(); }
 }, true);
 document.addEventListener('keydown', e => {
@@ -2037,8 +2578,9 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); removeTrayPhoto(t.dataset.id); return;
   }
   if (k === 'Escape') {
-    if (!$('organize-menu').hidden) { closeOrganizeMenu(); $('organize-more').focus(); return; }
-    if (!panel.hidden) { closePanel(); return; }
+    const m = openMenuName();
+    if (m) { closeMenu(m); $(MENUS[m][0]).focus(); return; }
+    if (!panel.hidden || !pdfPanel.hidden) { closePanels(); return; }
     if (ui.crop) { endCrop(); render(); return; }
     if (ui.sel) { ui.sel = null; render(); }
     return;
@@ -2053,14 +2595,24 @@ document.addEventListener('keydown', e => {
     nudge(k === 'ArrowLeft' ? -st : k === 'ArrowRight' ? st : 0, k === 'ArrowUp' ? -st : k === 'ArrowDown' ? st : 0);
   }
 });
+// Asks before leaving only when work would be lost: a save still writing, or a tab that isn't saving.
 window.addEventListener('beforeunload', e => {
-  if (doc.sheets.some(s => s.items.length)) { e.preventDefault(); e.returnValue = ''; }
+  let lose;
+  if (canSave()) { saveNow(); lose = store.writes > 0; }
+  else if (store.db) lose = editedHere();
+  else lose = doc.sheets.some(s => s.items.length);
+  if (lose) { e.preventDefault(); e.returnValue = ''; }
 });
 
 // Read-only view of the layout, for checking print sizes from the console.
-window.scrapbook = { state: () => JSON.parse(snap()), photos: () => [...photos.values()].map(p => ({ id: p.id, name: p.name, w: p.w, h: p.h })) };
+window.scrapbook = {
+  state: () => JSON.parse(snap()),
+  photos: () => [...photos.values()].map(p => ({ id: p.id, name: p.name, w: p.w, h: p.h, stored: p.stored })),
+  saving: () => ({ db: !!store.db, owner: store.owner, writes: store.writes, error: store.error, pending: !!store.timer }),
+};
 
 render();
+boot();
 })();
 </script>
 </body>
