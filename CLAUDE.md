@@ -13,14 +13,20 @@ nothing to install. Hosted on GitHub Pages: https://stevehines111.github.io/scra
   Clearing never touches the sheets; undo brings photos back. No "printed" tracking: the browser can't tell a print from Cancel.
 - Public static page. Photos never leave the computer: no uploads, no server, no analytics. Google Photos come from
   Google straight to the browser (or through the relay on your own Google account, stored nowhere, if it is turned on).
+- Work saves on the computer by itself; a refresh loses nothing. Another computer: carry a scrapbook file (File menu).
+  Save PDF sits under the ▾ on Print. (Option B of the 2026-10-02 mock, built on Steve's go-ahead.) Google Drive built
+  into the page: not built; revisit only if carrying a file gets old. It would upload photos to your own Drive and need
+  a Drive scope in the Cloud project.
 
 ## Stack
 - One file, `index.html`: HTML, CSS and JS inline. No build step, no framework.
-- JSZip (cdnjs) and heic2any (jsdelivr), loaded only when a zip or HEIC photo arrives, with SRI hashes.
+- JSZip (cdnjs), heic2any (jsdelivr) and pdf-lib 1.17.1 (cdnjs), each loaded only when needed (a zip or scrapbook
+  file, a HEIC photo, Save PDF), with SRI hashes.
 - DM Sans from Google Fonts, system font fallback.
 - Layout model is in inches. Each photo: x, y, w, h, rotation (0/90/180/270), crop (zoom >= 1, pan -1..1).
   The image always covers its frame.
-- Photos cleared from the tray stay loaded and are listed in `doc.hidden`, so sheets keep them and undo covers clearing.
+- Photos cleared from the tray stay loaded and are listed in `doc.hidden`, so sheets keep them and undo covers clearing
+  (and Start over, and opening a scrapbook file). Undo does not survive a refresh; the work does.
 - Images: ~400px tray thumbnails, ~2000px on-screen previews, the original file for printing.
 - `samples/`: 8 picsum.photos images (Unsplash license), used by "Try sample photos".
 - `relay/Code.gs`: Google Apps Script relay for Google Photos downloads (below). Deployed 2026-09-29 on Steve's
@@ -70,13 +76,39 @@ All sheets (the arrow beside the button; on with 2+ sheets): same guarantees, ac
 - Fills sheets first to last. Each takes the most photo area that fits (not the most photos), around any photo too big to move.
 - Overflow goes to new sheets after the last sheet of that size. Sheets it empties are removed; sheets that were blank stay.
 
+## Saving and the scrapbook file
+- IndexedDB database `scrapbook` (every stevehines111.github.io page shares one origin): store `photos` (original,
+  thumbnail and preview blobs, saved once as each photo comes in) and `meta` key `state` (layout and Cut marks, saved
+  0.4 s after a change, and when the tab is hidden or closed). On load, photos cleared from the tray and on no sheet are
+  deleted. Top-left status: Saved / Saving… / Not saved (storage full) / In another tab.
+- One tab saves at a time (Web Locks, `scrapbook-saving`). A second tab opens the saved work and does not save. Its
+  `Use here` takes over: untouched, it reloads with the other tab's latest; changed, its own work is saved.
+- "Leave site?" only when work would be lost: a save still writing, or a tab that isn't saving and was changed.
+- Saved work lives in one browser on one computer. Clearing browser data deletes it; Safari may delete it after a stretch
+  without visits. The scrapbook file is the backup.
+- Scrapbook file (`Scrapbook YYYY-MM-DD.scrapbook`): an uncompressed zip of `scrapbook.json` (`app`, `version` 1, `doc`,
+  `cutMarks`, `photos: [{ id, name, file }]`) and `photos/` (the originals). Open from File or by dropping it on the
+  page (a `.zip` with `scrapbook.json` works too). Opening gives everything new ids, replaces what is open and is one
+  undo step.
+
+## Save PDF
+- Built in the page with pdf-lib: one page per sheet with photos (all, or This sheet), each at its exact paper size,
+  72 pt to the inch. Each photo is its own file embedded once (JPEG and PNG as they are, anything else re-encoded as a
+  full-size JPEG), clipped to its frame and placed with the same geometry as screen and print. JPEG EXIF orientation is
+  applied in the PDF (browsers show photos turned by it; pdf-lib embeds raw pixels). Cut marks shared with Print.
+- Checked 2026-10-02 against Chrome's print output of the same sheets (13 × 19, 8.5 × 11 landscape, 4 × 6 full sheet;
+  turned, cropped, all 8 EXIF orientations, PNG, WebP): same page sizes, worst 16 px patch differs by under 4 of 255 at
+  40 dpi. Not yet established: Safari on the MacBook (saving, Save PDF, scrapbook file).
+
 ## The print-size check (the one that matters)
 A wrong physical print size is the risk. Print sets `@page { size: <W>in <H>in; margin: 0 }` and draws the
 sheet in real inches with full-resolution images. To check after any change to printing: serve the folder,
 drive it with Playwright + installed Chrome, place a photo, set it to 4×6, and `page.pdf({ preferCSSPageSize: true })`.
 The page must be exactly 936 × 1368 pt (13 × 19), 612 × 792 pt (8.5 × 11) or 288 × 432 pt (4 × 6), landscape
-swapped, and the 4×6 photo 288 × 432 pt within 1 pt. Last run 2026-09-29 (after Auto organize): all exact.
+swapped, and the 4×6 photo 288 × 432 pt within 1 pt. Save PDF must give the same: same page sizes, the 4×6 photo
+288 × 432 pt in the same spot. Last run 2026-10-02 (after Save PDF): print and PDF both exact.
 Keep test scripts and node_modules out of this repo.
 
 ## Out of scope for now
-Saving projects between sessions, captions or text, stickers or backgrounds, color profiles, phone layout.
+Google Drive sync, more than one saved scrapbook in the browser, captions or text, stickers or backgrounds, color
+profiles, phone layout.
